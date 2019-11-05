@@ -1,29 +1,126 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<title>Victor | Portfolio</title>
-	    <link type="text/css" rel="stylesheet" href="materialize.min.css"  media="screen,projection"/>
-	    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-		<script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
-	</head>
-	<body>
-		<div class="row">
-		    <div class="col s12 m7">
-		      <div class="card ">
-		        <div class="card-image">
-		          <img src="col.jpg">
-		          <span class="card-title">Columns.io Game</span>
-		        </div>
-		        <div class="card-content">
-		          <p>This is one of my first web developement projects. After learning the basics of html, I experimented with the materialize css framework and learned how to convert/integrate one of my favorite Python projects into a web-based app.</p>
-		        </div>
-		        <div class="card-action">
-		          <a href="https://victorvonlin.github.io/Columns">Check It Out!</a>
-		        </div>
-		      </div>
-		    </div>
-		  </div>
-		<!--------------------------------------ONLOAD---------------------------------------------->
-		<script type="text/javascript" src="materialize.min.js"></script>
-	</body>
+<head>
+	<title>WebReg</title>
+	<link rel="stylesheet" type="text/css" href="ux.css">
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+      <!--Import materialize.css-->
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
+	<script
+	  src="https://code.jquery.com/jquery-3.1.1.min.js"
+	  integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+	  crossorigin="anonymous"></script>
+	
+      <!--Let browser know website is optimized for mobile-->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+</head>
+<body id="test">
+	<table class="ui inverted selectable celled table">
+  <thead>
+    <tr>
+      <th>Course Code</th>
+      <th>Dept</th>
+      <th>Course Num</th>
+      <th>Type</th>
+      <th>Sec Num</th>
+      <th>Units</th>
+      <th>Grade Opt</th>
+      <th>Days</th>
+      <th>Time</th>
+      <th>Building</th>
+      <th>Room</th>    
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>35360</td>
+      <td>I&C SCI</td>
+      <td>6D</td>
+      <td>LEC</td>
+      <td>A</td>
+      <td>4.0</td>
+      <td>GR</td>
+      <td>F</td>
+      <td>04:00-04:50</td>
+      <td>TBA</td>
+      <td>TBA</td>
+    </tr>
+    <tr>
+      <td>35362</td>
+      <td>I&C SCI</td>
+      <td>6D</td>
+      <td>DIS</td>
+      <td>2</td>
+      <td>0.0</td>
+      <td>GR</td>
+      <td>M</td>
+      <td>11:00-11:50</td>
+      <td>ON</td>
+      <td>LINE</td>
+    </tr>
+    <tr>
+      <td>35525</td>
+      <td>I&C SCI</td>
+      <td>45C</td>
+      <td>LEC</td>
+      <td>B</td>
+      <td>4.0</td>
+      <td>GR</td>
+      <td>T T</td>
+      <td>06:30-07:50pm</td>
+      <td>HSLH</td>
+      <td>100A</td>
+    </tr>
+    <tr>
+      <td>35645</td>
+      <td>I&C SCI</td>
+      <td>90</td>
+      <td>LEC</td>
+      <td>B</td>
+      <td>1.0</td>
+      <td>PN</td>
+      <td>W</td>
+      <td>06:30-07:50pm</td>
+      <td>BS3</td>
+      <td>1200</td>
+    </tr>
+    <tr>
+      <td>35670</td>
+      <td>I&C SCI</td>
+      <td>139W</td>
+      <td>LEC</td>
+      <td>B</td>
+      <td>4.0</td>
+      <td>GR</td>
+      <td>M W</td>
+      <td>05:00-06:20pm</td>
+      <td>SSL</td>
+      <td>228</td>
+    </tr>
+    <tr>
+      <td>35674</td>
+      <td>I&C SCI</td>
+      <td>139W</td>
+      <td>DIS</td>
+      <td>B4</td>
+      <td>0.0</td>
+      <td>GR</td>
+      <td>F</td>
+      <td>03:00-03:50</td>
+      <td>DBH</td>
+      <td>1425</td>
+    </tr>
+  </tbody>
+  <tfoot>
+    <tr><th>Total units enrolled 13.0</th>
+    <th>1.0 p/np units</th>
+    <th>mc = meeting room/time changed</th>
+  </tr></tfoot>
+</table>
+	<iframe id="og" src="https://www.reg.uci.edu/cgi-bin/webreg-redirect.sh"></iframe>
+
+	<script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
+	<script src="webreg.js"></script>
+</body>
 </html>
