@@ -1,0 +1,25 @@
+body{
+	background-color:#555555;
+}
+
+h1 {
+	font-size:80px;
+	font-family: helvetica;
+	text-align: center;
+}
+p {
+	color:white;
+	font-size:18px;
+	font-family: helvetica;
+}
+.alert{
+	color:red;
+	font-weight:bold;
+}
+.center{
+	text-align: center
+}
+.wrapper{
+	color:#555555;
+	background-color:white;
+}
