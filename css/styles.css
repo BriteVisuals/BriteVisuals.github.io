@@ -1,15 +1,13 @@
 header{
 	background-color: #ffffff;
 	font-family: helvetica;
-	margin:0px;
-}
+	margin:0px;}
 
 body{
 	background-color:#222222;
 	font-family: helvetica;
 	margin: 0px;
-	height:100%;
-}
+	height:100%;}
 
 h1 {
 	font-size:30px;
@@ -19,8 +17,7 @@ h1 {
 	padding-bottom: 20px;
 	padding-left: 20px;
 	color:#444;
-	font-weight: bold;
-}
+	font-weight: bold;}
 
 h2 {
 	font-size:30px;
@@ -29,45 +26,39 @@ h2 {
 	padding-top: 20px;
 	padding-bottom: 20px;
 	color:#7092BE;
-	font-weight: bold;
-}
+	font-weight: bold;}
 
 h3{
-	font-size:30px;
+	font-size:50px;
 	text-align: center;
-	color: white;
-
-}
+	color: white;}
 
 body h3:hover{
 	color:#7092BE;
+	text-shadow: 10px 10px 20px black;
+	transition-duration: 0.5s;
 }
 
 p {
 	color:white;
-	font-size:14px;
-}
+	font-size:14px;}
 
 .center{
-	text-align: center
-}
+	text-align: center}
 
 .container{
 	width: 90%;
-	margin: 0px auto;
-}
+	margin: 0px auto;}
 
 .logo{
 	width:40px;
 	float:left;
-	padding: 15px 0px;
-}
+	padding: 15px 0px;}
 
 .clear::after{
 	content:"";
 	display: table;
-	clear:both;
-}
+	clear:both;}
 
 .main{
 	margin:0px auto;
@@ -76,36 +67,33 @@ p {
 	left:50%;
 	-moz-transform: translateX(-50%) translateY(-50%);
 	-webkit-transform: translateX(-50%) translateY(50%);
-	transform: translateX(-50%) translateY(-50%);
-}
+	transform: translateX(-50%) translateY(-50%);}
 
 nav{
-	float:right;
-}
+	float:right;}
 
 nav ul{
 	margin:0px;
 	padding:0px;
-	list-style: none;
-}
+	list-style: none;}
 
 nav li{
 	display:inline-block;
 	margin-left:70px;
 	padding-top:30px;
-	position: relative;
-}
+	position: relative;}
 
 nav a{
 	color:#444;
 	text-decoration: none;
 	text-transform: uppercase;
-	font-size: 14px;
-}
+	font-size: 14px;}
 
 nav a:hover{
 	color: #000;
 	font-weight: bold;
+	text-shadow:1px 1px 2px #444444;
+	transition-duration: 0.4s;
 }
 
 nav a::after{
@@ -114,5 +102,4 @@ nav a::after{
 	font-weight:bold;
 	height:0;
 	overflow:hidden;
-	visibility: hidden;
-}
+	visibility: hidden;}
