@@ -29,8 +29,9 @@ h2 {
 	font-weight: bold;}
 
 h3{
+	margin:0;
+	padding:10px;
 	font-size:50px;
-	text-align: center;
 	color: white;}
 
 body h3:hover{
@@ -40,7 +41,9 @@ body h3:hover{
 }
 
 p {
-	color:white;
+	margin:0;
+	padding: 0;
+	color:#a00000;
 	font-size:14px;}
 
 .center{
@@ -61,6 +64,7 @@ p {
 	clear:both;}
 
 .main{
+	text-align: center;
 	margin:0px auto;
 	position:absolute;
 	top:50%;
@@ -103,3 +107,9 @@ nav a::after{
 	height:0;
 	overflow:hidden;
 	visibility: hidden;}
+
+.navpage{
+	color: #000;
+	font-weight: bold;
+	text-shadow:1px 1px 2px #444444;
+}
