@@ -3,11 +3,10 @@ header{
 	font-family: helvetica;
 	margin:0px;}
 
-body{
-	background-color:#222222;
-	font-family: helvetica;
-	margin: 0px;
-	height:100%;}
+
+header img{
+	filter:drop-shadow(1px 1px 2px #444444);
+}
 
 h1 {
 	font-size:30px;
@@ -17,7 +16,9 @@ h1 {
 	padding-bottom: 20px;
 	padding-left: 20px;
 	color:#444;
-	font-weight: bold;}
+	font-weight: bold;
+	text-shadow: 1px 1px 3px #444;
+}
 
 h2 {
 	font-size:30px;
@@ -26,28 +27,9 @@ h2 {
 	padding-top: 20px;
 	padding-bottom: 20px;
 	color:#7092BE;
-	font-weight: bold;}
-
-h3{
-	margin:0;
-	padding:10px;
-	font-size:50px;
-	color: white;}
-
-body h3:hover{
-	color:#7092BE;
-	text-shadow: 10px 10px 20px black;
-	transition-duration: 0.5s;
+	font-weight: bold;
+	text-shadow: 1px 1px 3px #444;
 }
-
-p {
-	margin:0;
-	padding: 0;
-	color:#a00000;
-	font-size:14px;}
-
-.center{
-	text-align: center}
 
 .container{
 	width: 90%;
@@ -62,16 +44,6 @@ p {
 	content:"";
 	display: table;
 	clear:both;}
-
-.main{
-	text-align: center;
-	margin:0px auto;
-	position:absolute;
-	top:50%;
-	left:50%;
-	-moz-transform: translateX(-50%) translateY(-50%);
-	-webkit-transform: translateX(-50%) translateY(50%);
-	transform: translateX(-50%) translateY(-50%);}
 
 nav{
 	float:right;}
@@ -88,14 +60,16 @@ nav li{
 	position: relative;}
 
 nav a{
-	color:#444;
+	color:#fff;
 	text-decoration: none;
 	text-transform: uppercase;
-	font-size: 14px;}
+	font-size: 14px;
+	font-weight:bold;
+	text-shadow:1px 1px 2px #444444;
+}
 
 nav a:hover{
 	color: #000;
-	font-weight: bold;
 	text-shadow:1px 1px 2px #444444;
 	transition-duration: 0.4s;
 }
@@ -113,3 +87,76 @@ nav a::after{
 	font-weight: bold;
 	text-shadow:1px 1px 2px #444444;
 }
+
+/*CONTENTS*/
+
+body{
+	background-color:#222222;
+	font-family: helvetica;
+	margin: 0px;
+	height:100%;
+	width:100%
+}
+
+.main{
+	text-align: center;
+	position:absolute;
+	top:50%;
+	left:50%;
+	transform: translateX(-50%) translateY(-50%);}
+
+
+body h3:hover{
+	color:#7092BE;
+	text-shadow: 10px 10px 20px black;
+	transition-duration: 0.5s;
+}
+
+p {
+	margin:0;
+	padding: 0;
+	color:#a00000;
+	font-size:14px;}
+
+.text1{
+	margin:0;
+	padding:0;
+	font-size:50px;
+	color: white;
+	text-decoration: none;
+	margin-bottom: 10px;
+	position:relative;
+	animation:text 1s 1;
+	background:#222
+}
+
+.text2{
+	font-size:17px;
+	font-weight: 700;
+	color: #a00000;
+}
+
+@keyframes text{
+	0%{
+		color:#222;
+		margin-bottom:-40px;
+	}
+}
+
+
+
+.text3{
+	margin:0;
+	padding:10px 0;
+	font-size:50px;
+	color: white;
+	text-decoration: none;
+}
+
+.text4{
+	font-size:17px;
+	font-weight: 700;
+	color: #a00000;
+}
+
+
