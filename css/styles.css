@@ -1,8 +1,8 @@
 header{
 	background-color: #ffffff;
 	font-family: helvetica;
-	margin:0px;}
-
+	margin:0px;
+}
 
 header img{
 	filter:drop-shadow(1px 1px 2px #444444);
@@ -33,31 +33,37 @@ h2 {
 
 .container{
 	width: 90%;
-	margin: 0px auto;}
+	margin: 0px auto;
+}
 
 .logo{
 	width:40px;
 	float:left;
-	padding: 15px 0px;}
+	padding: 15px 0px;
+}
 
 .clear::after{
 	content:"";
 	display: table;
-	clear:both;}
+	clear:both;
+}
 
 nav{
-	float:right;}
+	float:right;
+}
 
 nav ul{
 	margin:0px;
 	padding:0px;
-	list-style: none;}
+	list-style: none;
+}
 
 nav li{
 	display:inline-block;
 	margin-left:70px;
 	padding-top:30px;
-	position: relative;}
+	position: relative;
+}
 
 nav a{
 	color:#fff;
@@ -80,7 +86,8 @@ nav a::after{
 	font-weight:bold;
 	height:0;
 	overflow:hidden;
-	visibility: hidden;}
+	visibility: hidden;
+}
 
 .navpage{
 	color: #000;
@@ -103,7 +110,8 @@ body{
 	position:absolute;
 	top:50%;
 	left:50%;
-	transform: translateX(-50%) translateY(-50%);}
+	transform: translateX(-50%) translateY(-50%);
+}
 
 
 body h3:hover{
@@ -116,7 +124,8 @@ p {
 	margin:0;
 	padding: 0;
 	color:#a00000;
-	font-size:14px;}
+	font-size:14px;
+}
 
 .text1{
 	margin:0;
