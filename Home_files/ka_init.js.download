@@ -1,0 +1,13 @@
+﻿SP.SOD.executeOrDelayUntilScriptLoaded(FixRibbonAndWorkspaceDimensions, 'init.js');
+
+var originalResizeFunction = FixRibbonAndWorkspaceDimensions;
+FixRibbonAndWorkspaceDimensions = function()
+{
+    //let sharepoint do its thing
+    originalResizeFunction();
+ 
+    //set the workspace size myself because SP was messing it up on Chrome for Android
+    var elmWorkspace = GetCachedElement("s4-workspace");
+    elmWorkspace.style.height = (window.innerHeight - elmWorkspace.offsetTop) + "px";
+    elmWorkspace.style.width = window.innerWidth + "px";
+}

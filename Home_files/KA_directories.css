@@ -1,0 +1,45 @@
+﻿table.ka_directory th {
+    padding-bottom: 5px;
+}
+table.ka_directory th,
+table.ka_directory td
+{
+    padding-right: 5px;
+}
+.txtFilter
+{
+    padding:0;
+    margin: 0;
+    display:block;
+    box-sizing: border-box;
+    width: 100%;
+}
+.btnExportExcel
+{
+    margin-left:20px;
+}
+.btnExportExcel > img {
+  vertical-align: middle;
+  margin-right: 5px;
+}
+tr.dirRow td
+{
+    padding-bottom:10px;
+}
+table.ka_directory .ka_emailicon {
+    margin-left: 5px;
+}
+select.txtFilter {
+    height: 23px; /*dropdowns need a little help*/
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	border-radius: 0;
+	background: url("/_layouts/15/Directories/images/drop-down.png") no-repeat right center;
+    color: inherit;
+}
+.ka_mac select.txtFilter {
+    padding-left: 4px;
+}
+select.txtFilter::-ms-expand {
+	display:none;
+}

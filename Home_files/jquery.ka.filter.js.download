@@ -1,0 +1,22 @@
+﻿function showHideButtons() {
+    jq18("input.txtFilter")
+        .focus(function () {
+            var elementToFind = ".btnApply_" + jq18(this).attr("filterOn");
+            jq18(document).find(elementToFind).show();
+        })
+        .blur(function () {
+            var elementToFind = ".btnApply_" + jq18(this).attr("filterOn");
+            if (jq18(this).val().length < 1) {
+                jq18(document).find(elementToFind).hide();
+            }
+        })
+        .keyup(function () {
+            var elementToFind = ".btnApply_" + jq18(this).attr("filterOn");
+            jq18(document).find(elementToFind).attr("src", "/_layouts/Images/FILTER.GIF");
+        });
+    jq18("select.txtFilter")
+        .change(function () {
+            var elementToFind = ".btnApply_" + jq18(this).attr("filterOn");
+            jq18(document).find(elementToFind).attr("src", "/_layouts/Images/FILTER.GIF").show().click();
+        });
+}

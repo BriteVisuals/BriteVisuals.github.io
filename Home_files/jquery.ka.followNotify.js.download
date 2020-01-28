@@ -1,0 +1,44 @@
+﻿addthrobber = function (sender) {
+    jq18(sender).addClass("throbber16");
+}
+
+function unFollowHover() {
+    jq18('a.ka_plusminuscheck.ka_checked').hover(
+        function () {
+            jq18(this).parent().parent().find('a.ka_plusminusnotify.ka_notified').css('background-position', '0px -140px');
+        },
+        function () {
+            jq18(this).parent().parent().find('a.ka_plusminusnotify.ka_notified').css('background-position', '0px -125px');
+        })
+        .click(function () {
+            jq18(this).parent().parent().find('a.ka_plusminusnotify.ka_notified').addClass("throbber16");
+        });
+
+    // fix for jquery hover breaking css hover
+    jq18('a.ka_plusminusnotify.ka_notified').hover(function () {
+        jq18(this).css('background-position', '0px -140px');
+    },
+        function () {
+            jq18(this).css('background-position', '0px -125px');
+        });
+}
+
+function notifyHover() {
+    jq18('a.ka_plusminusnotify.ka_unnotified').hover(function () {
+        jq18(this).parent().parent().find('a.ka_plusminuscheck.ka_unchecked').css('background-position', '0px 0px');
+    },
+        function () {
+            jq18(this).parent().parent().find('a.ka_plusminuscheck.ka_unchecked').css('background-position', '-20px -15px');
+        })
+        .click(function () {
+            jq18(this).parent().parent().find('a.ka_plusminuscheck.ka_unchecked').addClass("throbber16");
+        });
+
+    // fix for jquery hover breaking css hover
+    jq18('a.ka_plusminuscheck.ka_unchecked').hover(function () {
+        jq18(this).css('background-position', '0px -15px');
+    },
+        function () {
+            jq18(this).css('background-position', '-20px -15px');
+        });
+}

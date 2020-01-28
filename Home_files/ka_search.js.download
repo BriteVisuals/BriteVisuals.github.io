@@ -1,0 +1,2926 @@
+﻿var isResultPage = false;
+var isAdminPage = false;
+
+var suggestionConfig = {
+    delay: 10,             // time to wait before executing the query (in ms) 500
+    minCharacters: 1,       // minimum nr of characters to enter before search 3
+    resultsAnimation: 0,  // animation time (in ms) of the search results 200
+    resultAnimation: 0,      // animation time (in ms) of individual result (when selected) 0
+    suggestionsToShow: 10
+};
+
+var selectedSuggestionIndex = -1;
+var suggestReq = false;
+var noSuggestions = true;
+var getSearchSuggestionsJob;
+var resultsSelected = false;
+var inputForSuggestion = "";
+var focusOnSuggestion = false;
+var quickFindTimer;
+
+var searchConfig = {
+    allScopes: ["Everything", "Posts", "Documents", "Images", "Videos", "Wiki Pages", "Employees", "Projects", "Companies", "Opportunities", "Contacts", "Communities", "Topics", "Events", "Links", "Other Results"],
+    leftColumnResultsOrder: ["Best Bets", "Best Bet", "Posts", "Documents", "Images", "Videos", "Wiki Pages", "Events", "Links", "Other Results"],
+    rightColumnResultsOrder: ["Employees", "Projects", "Companies", "Opportunities", "Contacts", "Communities", "Topics"],
+    sharepointScopes: ["Other Results"],
+    webApiScopes: ["Posts", "Documents", "Wiki Pages", "Images", "Links", "Videos", "Events", "Employees", "Projects", "Companies", "Opportunities", "Contacts", "Communities", "Topics"],
+    scopesRequiringPreSearch: ["Everything", "Documents", "Images", "Videos", "Wiki Pages", "Events", "Links", "Other Results"],
+    groupDisplayLimit: 3,
+    pageSize: 10,
+    imagePageSize: 50
+};
+
+var queryObj = {
+    queryText: "",
+    selectedScope: "Everything",
+    selectedFacets: [],
+    currentPageIndex: 0,
+    selectedSuggestion: false
+}
+function resetQueryObjToDefaults() {
+    queryObj.queryText = "";
+    queryObj.selectedScope = "Everything";
+    queryObj.selectedFacets = [];
+    queryObj.currentPageIndex = 0;
+    queryObj.selectedSuggestion = false;
+}
+
+var cachedQuery = "";
+var bestBetsResultGroup = {};
+
+var isBrowserBack = false;
+
+var scopesPanelArray = [];
+var hasLeftColumnResult = false;
+var resultTemplates = {};//container to lazyload mustache templates into
+var spPreSearchResults = [];
+var everythingResults = [];
+var currentPageResults = [];
+
+var referringUrl;
+var spReq = false;
+var webApiReq = false;
+var lockResults = false;
+var noResults = true;
+var noResultsForScope = true;
+var sp2013SearchJob;
+var webApiSearchJob;
+var spPreSearchJob;
+
+var newRelicMetrics = {};
+var searchLogTimerStart;
+
+jq18(document).ready(function () {
+
+    getQueryObjFromURLParameters();
+    referringUrl = document.referrer;
+
+    if (queryObj.selectedFacets.length > 0) {
+        logToConsole(JSON.stringify(queryObj.selectedFacets));
+    }
+
+    if (queryObj.queryText != "")
+        jq18(".quickSearchTextBox").val(queryObj.queryText);
+
+    jq18(".quickSearchTextBox")
+    .focus(function () {
+        cacheNavLinks();
+
+        jq18("#ka_QuickSearchResults, #ka_searchIcon").hover(
+            function () { resultsSelected = true; },
+            function () { resultsSelected = false; }
+        );
+    })
+    .blur(function () {
+        if (!resultsSelected) {  //if you click on anything other than the results
+            clearResults(); //clear and hide the results
+        }
+    });
+
+    if (window.location.href.toLowerCase().indexOf("/_layouts/15/search/results.aspx") > -1)
+        isResultPage = true;
+    if (window.location.href.toLowerCase().indexOf("/search%20optimization") > -1 || window.location.href.toLowerCase().indexOf("/searchoptimization") > -1) {
+        isAdminPage = true;
+    }
+
+    if (isResultPage || isAdminPage) {
+
+        jq18('.quickSearchTextBox')
+        .focusin(function () {
+            window.inSearchBox = true;
+            window.browserNavKeyPress = false;
+            //logToConsole("Search box is in focus.");
+        })
+       .focusout(function () {
+            window.inSearchBox = false;
+            //logToConsole("Focus out of search box.");
+       });
+
+        //jq18("#sideNavBox").css('display', 'none'); handled by masterpage codebehind
+        //jq18("#contentBox").css('margin-left', '100px'); handled by masterpage codebehind and ka_noLeftNav.css
+        
+        if (queryObj.queryText != "") {
+            initSearch();
+        }
+    }   
+
+});
+jq18(document).click(function (e) {
+    if (isResultPage || isAdminPage) {
+
+        var target = e.target;
+
+        if (!jq18(target).is('#ka_DynamicPanelDropdown') && !jq18(target).parents().is('#ka_DynamicPanelDropdown')) {
+            jq18('#ka_panelDDL').css('visibility', 'hidden');
+        }
+    }
+});
+
+
+// SUGGESTION SEARCH
+function initSuggestSearch() {
+    // Get query from search box
+    var suggestQuery = jq18.trim(jq18(".quickSearchTextBox").val());
+
+    // First store query in data
+    jq18(".quickSearchTextBox").data("query", suggestQuery);
+
+    // Abort any existing requests and clear old results
+    stopAllSearches();
+    clearResults();
+
+    // start the search
+    if (suggestQuery.length >= suggestionConfig.minCharacters) {
+        quickSearchSelectedDivIndex = -1;
+        tokenUtils.getToken(suggestQuery, function (suggReq, tkn) { getSearchSuggestions(suggReq, tkn); });
+    }
+}
+function getSearchSuggestions(suggestQuery, token) {
+    suggestReq = true;
+    var sugData = {
+        "QueryText": suggestQuery,
+        "Limit": 10
+    };
+
+    var url = apiUrl + "/search/suggest";
+    getSearchSuggestionsJob = jq18.ajax({
+        url: url,
+        xhrFields: {
+            withCredentials: true
+        },
+        type: "POST",
+        data: JSON.stringify(sugData),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        headers: { "Authorization": "Bearer " + token }
+    })
+    .done(function (data) {
+        getSearchSuggestionsSuccess(suggestQuery, data);
+    })
+    .fail(function (jqXHR, textStatus) {
+        suggestReq = false;
+        logToConsole(textStatus);
+    });
+}
+function getSearchSuggestionsSuccess(suggestQuery, json) {
+    
+    suggestReq = false;
+
+    if (json && json.results && json.results.length > 0) {
+        noSuggestions = false;
+        showResults(suggestQuery, json.results);
+    }
+    else if (noSuggestions)
+        clearResults();
+}
+
+function clearResults() {
+    //logToConsole("Clearing Suggestions");
+    noSuggestions = true;
+    queryObj.selectedSuggestion = false;
+    selectedSuggestionIndex = -1;
+    jq18("#ka_QuickSearchResults").hide().empty();
+}
+function showResults(suggestQuery, suggestionsJson) {
+
+    //logToConsole("In show results: " + JSON.stringify(suggestionsJson));
+    var resultsDiv = jq18("#ka_QuickSearchResults");
+
+    // Get query from search box and query from returned json to make sure they match
+    var searchBoxQuery = jq18.trim(jq18(".quickSearchTextBox").val());
+    //logToConsole("searchBoxQuery: " + searchBoxQuery);
+
+    //logToConsole("jsonQuery: " + suggestionsQuery);
+
+    // Remove any suggestions from the resultsDiv that no longer match the search box query
+    var existingChildren = resultsDiv.children().length;
+    //logToConsole("Num of children before: " + existingChildren);
+    if (existingChildren > 0) {
+
+        jq18.each(resultsDiv.children(), function (i, ch) {
+            logToConsole("child query val: " + jq18(ch).attr('query'));
+        });
+
+        resultsDiv.children().not("[query='" + escapeHtml(searchBoxQuery) + "']").remove();
+        existingChildren = resultsDiv.children().length; // re-count children
+    }
+    //logToConsole("Num of children after: " + existingChildren);
+
+    // If search box and json query match AND there is still room for more suggestions, THEN display them
+    if (searchBoxQuery == suggestQuery && existingChildren < suggestionConfig.suggestionsToShow) {
+
+        var suggestionsArray = suggestionsJson;
+        var numberOfSuggestions = suggestionsArray.length;
+
+        var divCss = {
+            "top": resultsDiv.prev().position().top + resultsDiv.prev().height() + 1,
+            "left": resultsDiv.prev().position().left,
+            "width": resultsDiv.prev().width(),
+            "max-height": jq18(window).height() - 60
+        };
+        jq18(window).resize(function () {
+            resultsDiv.css('max-height', (jq18(window).height() - 60) + 'px'); //resize spotlight on window resize
+        });
+
+        var sugs = suggestionsArray.slice();
+        if ((suggestionConfig.suggestionsToShow - existingChildren) < numberOfSuggestions)
+            sugs = suggestionsArray.slice(0, suggestionConfig.suggestionsToShow - existingChildren);
+
+        jq18.each(suggestionsArray, function (i) {
+            var suggestionDisplayText = getSuggestionDisplayText(searchBoxQuery, sugs[i]);
+            suggestionDiv = jq18("<div>").html(suggestionDisplayText).attr("query", escapeHtml(searchBoxQuery));
+            suggestionDiv.click(function () {
+                stopAllSearches();
+                queryObj.selectedSuggestion = true;
+                queryObj.queryText = sugs[i];
+                jq18(".quickSearchTextBox").val(queryObj.queryText);
+                
+                resultsDiv.slideUp("fast");
+                
+                if (isResultPage || isAdminPage) {
+
+                    if (queryObj.queryText != "") {
+                        window.location.hash = setURLHash(queryObj.queryText, queryObj.selectedScope, null, 0, queryObj.selectedSuggestion);
+                        initSearch();
+                    }
+                }
+                else {
+                    if (queryObj.queryText != "")
+                        window.location = "/_layouts/15/search/results.aspx" + setURLHash(queryObj.queryText, "Everything", null, 0, queryObj.selectedSuggestion);
+                }
+            });
+            resultsDiv.append(suggestionDiv);
+            jq18(suggestionDiv).data("suggestion", sugs[i]);
+        });
+
+        resultsDiv.css(divCss).show();
+    }
+}
+
+function getSuggestionDisplayText(searchBoxText, suggestionText) {
+    var displayText = suggestionText;
+    var parsedSearchBoxText = searchBoxText.toLowerCase().replace('"', '');
+    var sbtLength = parsedSearchBoxText.length
+    var parsedSuggestionText = suggestionText.toLowerCase();
+    if (parsedSuggestionText.indexOf(parsedSearchBoxText) == 0)
+        displayText = displayText.slice(0, sbtLength) + "<span style='font-weight:500'>" + displayText.slice(sbtLength) + "</span>";
+    else if (parsedSuggestionText.indexOf(" " + parsedSearchBoxText) > 0) {
+        var insertPoint = parsedSuggestionText.indexOf(" " + parsedSearchBoxText);
+        displayText = "<span style='font-weight:500'>" + displayText.slice(0, insertPoint) + "</span>" + displayText.slice(insertPoint, insertPoint + sbtLength + 1) + "<span style='font-weight:500'>" + displayText.slice(insertPoint + sbtLength + 1) + "</span>";
+    }
+    else if (parsedSuggestionText.indexOf("#" + parsedSearchBoxText) == 0) {
+        displayText = displayText.slice(0, sbtLength + 1) + "<span style='font-weight:500'>" + displayText.slice(sbtLength + 1) + "</span>";
+    }
+    else if (parsedSuggestionText.indexOf("#" + parsedSearchBoxText) > 0) {
+        var insertPoint = parsedSuggestionText.indexOf("#" + parsedSearchBoxText);
+        displayText = "<span style='font-weight:500'>" + displayText.slice(0, insertPoint) + "</span>" + displayText.slice(insertPoint, insertPoint + sbtLength + 1) + "<span style='font-weight:500'>" + displayText.slice(insertPoint + sbtLength + 1) + "</span>";
+    }
+    return displayText;
+}
+
+jq18(document)
+    .on("mouseover", "#ka_QuickSearchResults>div", function () {   
+        if (!queryObj.selectedSuggestion) {
+                jq18('#ka_QuickSearchResults > div').removeClass('suggestionInFocus');
+                focusOnSuggestion = true;
+                jq18(this).addClass('suggestionInFocus');
+                selectedSuggestionIndex = jq18(this).index();
+            }
+    })
+    .on("mouseleave", "#ka_QuickSearchResults>div", function () {
+        if (!queryObj.selectedSuggestion) {
+                jq18('#ka_QuickSearchResults > div').removeClass('suggestionInFocus');
+                focusOnSuggestion = false;
+                selectedSuggestionIndex = -1;
+            }
+    });
+
+function selectSuggestionByIndex(resultIndex) {
+    jq18('#ka_QuickSearchResults > div').removeClass('suggestionInFocus');
+    focusOnSuggestion = true;
+    var selectedDiv = jq18('#ka_QuickSearchResults > div:eq(' + resultIndex + ')')
+    selectedDiv.addClass('suggestionInFocus');
+    jq18(".quickSearchTextBox").val(selectedDiv.data("suggestion"));
+}
+
+
+// GENERAL FUNCTIONS
+
+function quickFindKeyUp(e, box) {
+
+    var searchBox = jq18("#" + box)
+    switch (e.keyCode) {
+        case 13: // enter key pressed
+            stopAllSearches();
+            if (focusOnSuggestion)
+                queryObj.selectedSuggestion = true;
+            queryObj.queryText = searchBox.val();
+            jq18("#ka_QuickSearchResults").slideUp("fast");
+
+            if (isResultPage || isAdminPage) {
+                if (queryObj.queryText != "") {
+                    referringUrl = window.location.href;
+                    window.location.hash = setURLHash(queryObj.queryText, queryObj.selectedScope, null, 0, queryObj.selectedSuggestion);
+                    initSearch();
+                }
+            }
+            else {
+                if (queryObj.queryText != "")
+                    window.location = "/_layouts/15/search/results.aspx" + setURLHash(queryObj.queryText, "Everything", null, 0, queryObj.selectedSuggestion);
+            }
+            break;
+        case 27:  // esc key pressed
+            stopAllSearches();
+            resultsSelected = false;
+            jq18(".quickSearchTextBox").val(inputForSuggestion);
+            inputForSuggestion = "";
+            focusOnSuggestion = false;
+            clearResults();
+            break;
+        case 38:  // up arrow pressed
+            if (selectedSuggestionIndex > -1) { //check bounds
+                selectedSuggestionIndex--;
+
+                if (selectedSuggestionIndex > -1)
+                    selectSuggestionByIndex(selectedSuggestionIndex);
+                else {
+                    jq18('#ka_QuickSearchResults > div').removeClass('suggestionInFocus');
+                    jq18(".quickSearchTextBox").val(inputForSuggestion);
+                    focusOnSuggestion = false;
+                }
+            }
+            else {
+                jq18('#ka_QuickSearchResults > div').removeClass('suggestionInFocus');
+                jq18(".quickSearchTextBox").val(inputForSuggestion);
+                focusOnSuggestion = false;
+            }
+            break;
+        case 40:  // down arrow pressed
+            stopAllSearches();
+
+            if (selectedSuggestionIndex < 0)
+                inputForSuggestion = jq18(".quickSearchTextBox").val();
+
+            if (selectedSuggestionIndex < (jq18('#ka_QuickSearchResults > div').length - 1)) { //check bounds
+                selectedSuggestionIndex++;
+                selectSuggestionByIndex(selectedSuggestionIndex);
+            }
+            break;
+        default:
+            if (jq18('#' + box).val().trim() == "") //if search box is empty
+                clearResults();
+            else if (jq18('#' + box).data("query") != jq18('#' + box).val()) {// if the query is different from the previous one, search again
+
+                clearTimeout(quickFindTimer);
+                quickFindTimer = setTimeout(function () {
+                    initSuggestSearch();
+                }, suggestionConfig.delay); // time between key strokes before suggesting tags
+
+                queryObj.selectedFacets = []; // also, clear out any old selectedFacets, since they won't apply to a new search query
+            }
+            break;
+    }
+
+}
+function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+};
+function goResultsPage() {
+    stopAllSearches();
+    jq18("#ka_QuickSearchResults").slideUp('fast');
+    if (jq18(".quickSearchTextBox").val() != '') {
+        queryObj.queryText = jq18(".quickSearchTextBox").val();
+        if (isResultPage || isAdminPage) {
+            referringUrl = window.location.href;
+            window.location.hash = setURLHash(queryObj.queryText, queryObj.selectedScope, null, 0, queryObj.selectedSuggestion);
+            initSearch();
+        }
+        else
+            window.location = "/_layouts/15/search/results.aspx" + setURLHash(queryObj.queryText, "Everything", null, 0, queryObj.selectedSuggestion);
+    }
+}
+function stopAllSearches() {
+    suggestReq = false;
+    if (getSearchSuggestionsJob != null) {
+        getSearchSuggestionsJob.abort();
+        getSearchSuggestionsJob = null;
+    }
+    spReq = false;
+    if (sp2013SearchJob != null) {
+        sp2013SearchJob.abort();
+        sp2013SearchJob = null;
+    }
+    if (spPreSearchJob != null) {
+        spPreSearchJob.abort();
+        spPreSearchJob = null;
+    }
+    webApiReq = false;
+    if (webApiSearchJob != null) {
+        webApiSearchJob.abort();
+        webApiSearchJob = null;
+    }    
+}
+function getQueryObjFromURLParameters() {
+
+    resetQueryObjToDefaults();
+
+    if (window.location.hash != "") {
+        var hash = (function (a) {
+            if (a == "") return {};
+            var b = {};
+            for (var i = 0; i < a.length; ++i) {
+                var p = a[i].split('=');
+                if (p.length != 2) continue;
+                b[p[0]] = p[1];
+            }
+            return b;
+        })(window.location.hash.substr(1).split('&'));
+
+        if (hash["q"] != null)
+            queryObj.queryText = decodeURIComponent(hash["q"].replace(/\+/g, " "));
+
+        if (hash["s"] != null)
+            queryObj.selectedScope = decodeURIComponent(hash["s"]);
+
+        if (hash["r"] != null) {
+            var refPair = hash["r"].split('+');
+
+            jq18.each(refPair, function (i, val) {
+                var r = convertEncodedFacetStringToSelectedFacet(val);
+                queryObj.selectedFacets.push(r);
+            })
+        }
+
+        if (hash["p"] != null)
+            queryObj.currentPageIndex = hash["p"];
+
+        if (hash["g"] != null && hash["g"] == 1)
+            queryObj.selectedSuggestion = true;
+        else
+            queryObj.selectedSuggestion = false;
+    }
+
+}
+function setURLHash(q, s, r, p, g) {
+    var hash = "#";
+
+    if (q != "")
+        hash += "q=" + encodeURIComponent(q) + "&";
+
+    if (s != "Everything")
+        hash += "s=" + encodeURIComponent(s) + "&";
+
+    if (r) {
+        var refString = "";
+        var catToClear = "";
+        if (r != "Current" && r.facetValue == "ClearFacets")
+            catToClear = r.facetGroupName;
+
+        if (queryObj.selectedFacets.length > 0) {
+            jq18.each(queryObj.selectedFacets, function (i, value) {
+                if (value.facetGroupName != catToClear) {
+                    refString += convertFacetToEncodedString(value.facetGroupName, value.facetValue) + '+';
+                }
+            });
+        }
+
+        if (r != "Current" && r.facetValue != "ClearFacets") {
+            refString += convertFacetToEncodedString(r.facetGroupName, r.facetValue) + '+';
+        }
+
+        if (refString != "") {
+            if (refString.slice(-1) == "+")
+                refString = refString.substring(0, refString.length - 1);
+
+            hash += "r=" + refString + "&";
+        }
+    }
+
+    if (!p)
+        hash += "p=0&";
+    else
+        hash += "p=" + p + "&";
+
+    if (g)
+        hash += "g=1&";
+    else
+        hash += "g=0&";
+
+    hash = hash.replace(/\&\s*$/, "");
+
+    return hash;
+}
+
+var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+function FormatDateTimeStamp(dateInput) {
+    var now = new Date();
+    var formattedStamp;
+    if (dateInput > new Date(now - 1 * 1000)) //newer than a second ago
+        formattedStamp = "just now";
+    else if (dateInput > new Date(now - 1 * 60 * 1000)) //newer than a minute ago
+        formattedStamp = Math.round((now - dateInput) / 1000) + " sec";
+    else if (dateInput > new Date(now - 1 * 60 * 60 * 1000)) //newer than an hour ago
+        formattedStamp = Math.round((now - dateInput) / (60 * 1000)) + " min";
+    else if (dateInput > new Date(now - 1 * 24 * 60 * 60 * 1000)) //newer than a day ago
+        formattedStamp = Math.round((now - dateInput) / (60 * 60 * 1000)) + "h";
+    else {
+        var year = dateInput.getFullYear() != now.getFullYear() ? (", " + dateInput.getFullYear().toString()) : ""; //if not in current year then show yyyy
+        formattedStamp = monthNames[dateInput.getMonth()] + " " + dateInput.getDate() + year;
+    }
+    return formattedStamp;
+}
+function FormatDuration(seconds) {
+    var min = Math.floor(seconds/60);
+    var sec = seconds - (min*60);
+    var hr = Math.floor(min/60);
+    min = min - (hr*60);
+    return (hr ? (hr<10 ? '0' + hr : hr) + ':' : '') + (min<10 ? '0' + min : min) + ':' + (sec<10 ? '0' + sec : sec);
+}
+function FormatEventTime(date) {
+    var hours = date.getHours();
+    var minutes = date.getMinutes();
+    var ampm = hours >= 12 ? 'pm' : 'am';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    minutes = minutes < 10 ? '0'+minutes : minutes;
+    var strTime = hours + ':' + minutes + ' ' + ampm;
+    return strTime;
+}
+function getIconName(fileExtension) {
+    switch (fileExtension) {
+        case "doc":
+        case "dot":
+        case "docx":
+        case "dotx":
+        case "docm":
+        case "dotm":
+        case "rtf":
+            return "docIcon";
+        case "xls":
+        case "xlt":
+        case "xlm":
+        case "xlsm":
+        case "xlts":
+        case "xlsx":
+            return "xlsIcon";
+        case "sldx":
+        case "sldm":
+        case "ppt":
+        case "pot":
+        case "pptm":
+        case "ppsx":
+        case "ppsm":
+        case "pptx":
+            return "pptIcon";
+        case "pdf":
+            return "pdfIcon";
+        default:
+            return "GenericDocument";
+    }
+}
+function removeHiddenImages(imgs) {
+    imgs.load(function () { //as each image loads
+        var firstBottom = "none";
+        jq18.each(imgs, function (i, el) { //check each sibling to make sure it fits
+            if (firstBottom == "none")
+                firstBottom = el.offsetTop + el.height;
+            else if (el.offsetTop > firstBottom) //if not
+                el.remove(); //remove it
+        });
+    });
+}
+function buildMoreLabel(hitCount, scope)
+{
+    scope = scope.toLowerCase();
+
+    if (scope == "other results")
+        scope = "results";
+
+    var singleScope = scope.substring(0, scope.length - 1);
+
+    if (scope == "opportunities")
+        singleScope = "opportunity";
+    else if (scope == "companies")
+        singleScope = "company";
+    else if (scope == "communities")
+        singleScope = "community";
+
+    if (hitCount > (100 + searchConfig.groupDisplayLimit))
+        return "100+ more " + scope;
+    else if ((hitCount - searchConfig.groupDisplayLimit) == 1)
+        return "1 more " + singleScope;
+    else
+        return (hitCount - searchConfig.groupDisplayLimit) + " more " + scope;
+}
+function insertSizeIntoVideoPreviewFilename(filename) {
+    var sizeString = "_160w90h_fxd"
+    var dotIndex = filename.lastIndexOf(".");
+    if (dotIndex == -1)
+        return filename;
+    else
+        return filename.substring(0, dotIndex) + sizeString + filename.substring(dotIndex);
+}
+
+
+
+// BELOW IS STUFF FOR THE RESULTS PAGE
+
+function initSearch() {
+
+    searchLogTimerStart = Date.now();
+
+    logToConsole("cachedQuery: " + cachedQuery);
+    logToConsole("query: " + queryObj.queryText);
+    logToConsole("selectedScope: " + queryObj.selectedScope);
+    logToConsole("everythingResults.length: " + everythingResults.length);
+
+    if (cachedQuery != queryObj.queryText) {
+        everythingResults = [];
+        spPreSearchResults = null;
+        cachedQuery = queryObj.queryText;
+    }
+
+    lockResults = false;
+    noresults = true;
+
+    if (queryObj.selectedScope == "Everything")
+        noResultsForScope = false;
+    else
+        noResultsForScope = true;
+
+    stopAllSearches();
+    currentPageResults = [];
+
+    jq18("img.loading").removeClass("ka_HiddenElement");
+
+    if (!jq18(".ka_NoResults").hasClass("ka_HiddenElement")) {
+        jq18(".ka_NoResults").addClass("ka_HiddenElement");
+    }
+
+    jq18(".ka_SearchResults").empty();
+    jq18("#ka_SearchScopesPanel").empty();
+
+    if (queryObj.selectedScope == "Everything") {
+        if (everythingResults.length > 0) {
+            currentPageResults = everythingResults;
+            formatAllResults();
+        }
+        else {
+            spSearchViaProxy(false);
+            webApiSearch(false);
+        }
+    }
+    else {
+        if (everythingResults.length == 0) {
+            spSearchViaProxy(true);
+            webApiSearch(true);
+        }
+        else if (queryObj.selectedScope == "Other Results") {
+            spSearchViaProxy(false);
+
+            if (queryObj.selectedFacets.length == 0 && queryObj.currentPageIndex == 0)
+                webApiSearch(false); // just for best bets
+        }
+        else {
+            webApiSearch(false);
+        }
+    }       
+}
+
+function buildScopesPanel() {
+
+    resultScopes = jq18.map(everythingResults, function (group) {
+        return group.header;
+    });
+
+    // Now that we know the result scopes, if there is not a left column result, we need to collapse the width of that column
+    var collapseLeftColumn = true;
+    if (queryObj.selectedScope != "Everything")
+        collapseLeftColumn = false;
+    else {
+        jq18.each(resultScopes, function (index, resultScope) {
+            if (searchConfig.leftColumnResultsOrder.indexOf(resultScope) > -1) {
+                collapseLeftColumn = false;
+                return false;
+            };
+        });
+    }
+    if (collapseLeftColumn) {
+        if (jq18("#ka_SearchResultsLeftColumn").hasClass("ka_SearchResultsLeft")) {
+            jq18("#ka_SearchResultsLeftColumn").removeClass("ka_SearchResultsLeft");
+        }
+        if (jq18("#ka_SearchResultsRightColumn").hasClass("ka_SearchResultsRight")) {
+            jq18("#ka_SearchResultsRightColumn").removeClass("ka_SearchResultsRight");
+        }
+    }
+    else {
+        if (!jq18("#ka_SearchResultsLeftColumn").hasClass("ka_SearchResultsLeft")) {
+            jq18("#ka_SearchResultsLeftColumn").addClass("ka_SearchResultsLeft");
+        }
+        if (!jq18("#ka_SearchResultsRightColumn").hasClass("ka_SearchResultsRight")) {
+            jq18("#ka_SearchResultsRightColumn").addClass("ka_SearchResultsRight");
+        }
+    }
+
+    scopesPanelArray = jq18.grep(searchConfig.allScopes, function (s) {
+        return s == "Everything" || resultScopes.indexOf(s) > -1;
+    });
+
+    var fixedScopeArray = [];
+    var dynamicScopeArray = [];
+
+    if (scopesPanelArray.length > 7)
+    {
+        //logToConsole(JSON.stringify(scopesPanelArray));
+        fixedScopeArray = scopesPanelArray.slice(0, 6);
+        dynamicScopeArray = scopesPanelArray.slice(6);
+        
+        var dynamicElement = scopesPanelArray[6];
+        var dynamicElementIndex = dynamicScopeArray.indexOf(queryObj.selectedScope);
+
+        if (dynamicElementIndex > -1)
+            dynamicElement = queryObj.selectedScope;
+
+        var dynamicPanel = "<a href='" + setURLHash(queryObj.queryText, dynamicElement, null, 0, queryObj.selectedSuggestion) + "' id='ka_searchScope_" + dynamicElement.replace(' ', '_') + "' onclick='selectScope(this.id);'>" + dynamicElement + "</a><ul id='ka_DynamicPanelDropdown' class='ka_searchMore dropdown' ><li><a href='#' onmouseover='toggleDynamicScope();'>More<img src='/_layouts/15/images/KAWebParts/More_lt_grey.png' alt='More'  style='margin-left:5px;' /></a></li></ul>"
+
+        var remainingArray = dynamicScopeArray.slice();
+        remainingArray.splice(remainingArray.indexOf(dynamicElement), 1);
+
+        var dynamicPanelDropDown = "<li><ul id='ka_panelDDL' class='ka_MoreScopesDropdown' >";
+        jq18.each(remainingArray, function (i, val) {
+            dynamicPanelDropDown += "<li><a href='" + setURLHash(queryObj.queryText, val, null, 0, queryObj.selectedSuggestion) + "' id='ka_searchScope_" + val.replace(' ', '_') + "' onclick='selectScope(this.id);'>" + val + "</a></li>";
+        });
+        dynamicPanelDropDown += "</ul></li>"
+    }
+    else 
+        fixedScopeArray = scopesPanelArray;
+
+    var fixedPanel = "";
+    jq18.each(fixedScopeArray, function (i, val) {
+        fixedPanel += "<a href='" + setURLHash(queryObj.queryText, val, null, 0, queryObj.selectedSuggestion) + "' id='ka_searchScope_" + val.replace(' ', '_') + "' onclick='selectScope(this.id);' >" + val + "</a>";
+    });
+     
+    jq18("#ka_SearchScopesPanel").empty();
+    jq18("#ka_SearchScopesPanel").append(fixedPanel);
+
+    if (dynamicScopeArray.length > 0) {
+        jq18("#ka_SearchScopesPanel").append(dynamicPanel);
+        jq18("#ka_DynamicPanelDropdown").append(dynamicPanelDropDown);
+    }
+
+    jq18("#ka_searchScope_" + queryObj.selectedScope.replace(' ', '_')).addClass("ka_SelectedScope");
+
+}
+function toggleDynamicScope() {
+    if (jq18('#ka_panelDDL').css('visibility') == 'hidden')
+        jq18('#ka_panelDDL').css('visibility', 'visible');
+    else
+        jq18('#ka_panelDDL').css('visibility', 'hidden');
+}
+function selectScope(scopeID) {
+
+    searchLogTimerStart = Date.now();
+    var oldScope = queryObj.selectedScope;
+    queryObj.selectedScope = scopeID.substring(15).replace('_', ' ');
+
+    if (oldScope == queryObj.selectedScope && queryObj.currentPageIndex == 0)
+        return false;
+
+    queryObj.selectedFacets = [];
+    queryObj.currentPageIndex = 0;
+    initSearch();
+
+}
+
+function searchResultsGroup(header, hitCount, results, facets, pageSize, isEverythingGroup) {
+    this.header = header;
+    this.hitCount = hitCount;
+    this.moreText = buildMoreLabel(hitCount, header);
+
+    this.currentPageResults = results;
+    if (results.length > pageSize)
+        this.currentPageResults = results.slice(0, pageSize);
+
+    this.urlHash = setURLHash(queryObj.queryText, header, null, 0, queryObj.selectedSuggestion);
+
+    this.linkHeader = false;
+    this.showFooter = false;
+    this.showPaging = false;
+    this.facets = [];
+
+    if (header.indexOf("Best Bet") < 0) {
+        if (isEverythingGroup) {
+            this.linkHeader = true;
+        }
+
+        if (isEverythingGroup && hitCount > pageSize)
+            this.showFooter = true;
+
+        if (!isEverythingGroup && hitCount > pageSize)
+            this.showPaging = true;
+
+        if (!isEverythingGroup)
+            this.facets = facets;
+    }
+}
+
+function spSearchViaProxy(populateEverythingResults) {
+    if (sp2013SearchJob != null)
+        return false;
+
+    spReq = true;
+
+    var spSearchScope = "Other Results";
+    var refinements = [];
+
+    var offset = 0
+    if (!populateEverythingResults) {
+        refinements = convertSelectedFacetsToSharepointRefinements(queryObj.selectedFacets);
+        offset = queryObj.currentPageIndex * searchConfig.pageSize;
+    }
+    
+    var spData = {
+        "query": queryObj.queryText,
+        "scope": "Other Results",
+        "refinements": refinements,
+        "relevantResultsStartIndex": offset,
+        "navResultsStartIndex": 0,
+        "pageSize": searchConfig.pageSize,
+        "imagePageSize": 0
+    };
+
+    logToConsole(JSON.stringify(spData));
+    var start = Date.now();
+
+    var url = "/_layouts/15/NexusAPIProxy/SPSearch.ashx";    
+
+    sp2013SearchJob = jq18.ajax({
+        url: url,
+        type: "POST",
+        data: JSON.stringify(spData),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json"
+    })
+        .done(function (data) {
+            //logToConsole(data);
+            var timeElapsed = Date.now() - start;
+            //logToConsole("SPSearch request took " + timeElapsed + "ms");           
+            spSearchViaProxySuccess(data, populateEverythingResults);
+        })
+        .fail(function (jqXHR, textStatus) {
+            ajaxRequestFailed("spSearchViaProxy", textStatus);
+        });
+}
+function spSearchViaProxySuccess(json, populateEverythingResults) {
+        
+    var isEverythingGroup = false;
+    if (populateEverythingResults || queryObj.selectedScope == "Everything")
+        isEverythingGroup = true;
+
+    if (json && json.newRelicJson)
+        jq18.extend(newRelicMetrics, json.newRelicJson);           
+
+    if (json["Other Results"] && json["Other Results"].hitCount > 0) {
+
+        noResults = false;
+        if (queryObj.selectedScope == "Other Results")
+            noResultsForScope = false;
+
+        var results = [];
+        jq18.each(json["Other Results"].results, function (i, r) {
+            transformSPResult(r);
+            results.push(r);
+        });
+
+        var facets = [];
+        if (queryObj.selectedScope == "Other Results") {
+            facets = transformSPRefinements(json["Other Results"].facets);                
+        }
+
+        var pageSize = searchConfig.pageSize;
+        if (isEverythingGroup)
+            pageSize = searchConfig.groupDisplayLimit;
+        
+        var resultGroup = new searchResultsGroup("Other Results", json["Other Results"].hitCount, results, facets, pageSize, isEverythingGroup);
+
+        if (isEverythingGroup)
+            everythingResults.push(resultGroup);
+        
+        if (!populateEverythingResults)
+            currentPageResults.push(resultGroup);
+    }
+            
+
+    spReq = false;
+
+    if (!webApiReq && !lockResults) {
+        lockResults = true;
+        if (everythingResults.length > 0) {
+
+            if (populateEverythingResults) {
+                initSearch();
+            }
+            else {
+
+                noResults = false;
+
+                if (noResultsForScope) {
+                    queryObj.selectedScope = "Everything";
+                    queryObj.selectedFacets = [];
+                    currentPageResults = everythingResults;
+                    window.location.hash = setURLHash(queryObj.queryText, "Everything", null, 0, queryObj.selectedSuggestion);
+                }
+
+                formatAllResults();
+            }
+        }
+        else {
+            jq18("img.loading").addClass("ka_HiddenElement");
+            displayNoResults();
+        }
+    }
+
+
+    
+    
+       
+}
+function getSPDisplayIconUrl(scope, fileExtension, resultIconName) {
+    var internalIconName;
+    if (scope == "Wiki Pages")
+        return  "/_layouts/15/KA Search/icons/wikiIcon.png";
+    else if (scope == "Links")
+        return "/_layouts/15/KA Search/icons/linkIcon.png";
+    else
+        internalIconName = getIconName(fileExtension);
+
+    if (!internalIconName) {
+        if (!resultIconName)
+            return "/_layouts/15/images/" + resultIconName;
+        else
+            return "/_layouts/15/KA Search/icons/GenericDocument.png";
+    }
+    else
+        return "/_layouts/15/KA Search/icons/" + internalIconName + ".png";
+}
+
+function preParseQueryForUrl(inQuery)
+{    
+    if (queryObj.selectedSuggestion)
+        inQuery = inQuery.replace(/:/g, "\\:").replace(/-/g, "\\-").replace(/\+/g, "\\+").replace(/\?/,"\\?");
+
+    return encodeURIComponent(inQuery);
+
+}
+
+function webApiSearch(populateEverythingResults) {
+
+    if (spPreSearchJob != null || webApiSearchJob != null)
+        return false;
+
+    webApiReq = true;
+
+    var searchType = "All";
+    if (!populateEverythingResults && queryObj.selectedScope != "Everything")
+        searchType = getWebApiSearchType(queryObj.selectedScope);
+        
+    var selectedGroup = queryObj.selectedScope;
+    if (queryObj.selectedScope == "Everything") {
+        selectedGroup = "None";
+    }
+
+    var limit = searchConfig.pageSize;
+    if (queryObj.selectedScope == "Images")
+        limit = searchConfig.imagePageSize;
+    else if (searchType == "All") {
+        limit = 3;
+    }
+
+    var refinements = [];
+    var offset = 0
+    if (!populateEverythingResults && queryObj.selectedScope != "Everything") {
+        refinements = convertSelectedFacetsToWebApiRefinements(queryObj.selectedFacets);
+        offset = queryObj.currentPageIndex * limit;
+    }
+
+    var includeBestBets = true;
+    if (!populateEverythingResults && (queryObj.currentPageIndex > 0 || (queryObj.selectedFacets && queryObj.selectedFacets.length > 0)))
+        includeBestBets = false;
+
+    var needPreSearch = false;
+    var preSearchResultsToPassWithQuery = [];
+    if (searchConfig.scopesRequiringPreSearch.indexOf(queryObj.selectedScope) > -1) {
+        needPreSearch = true;
+
+        if (spPreSearchResults && spPreSearchResults.length > 0) {
+            /*if (searchType == "All")
+                preSearchResultsToPassWithQuery = spPreSearchResults;
+            else {
+                
+            }*/
+            preSearchResultsToPassWithQuery = spPreSearchResults;
+        }
+    }
+
+    var searchRequest = {
+        "queryText": queryObj.queryText,
+        "searchType": searchType,
+        "offset": offset,
+        "limit": limit,
+        "includeBestBets": includeBestBets,
+        "refinements": refinements,
+        "sharepointPreSearchResults": preSearchResultsToPassWithQuery
+    };
+
+    logToConsole(JSON.stringify(searchRequest));
+
+    if (!spPreSearchResults && needPreSearch)
+        runSpPreSearch(searchRequest, populateEverythingResults);
+    else
+        tokenUtils.getToken(searchRequest, function (searchReq, tkn) { runWebApiSearch(searchReq, tkn, populateEverythingResults); });
+}
+function runSpPreSearch(searchRequest, populateEverythingResults) {
+
+    spPreSearchJob = jq18.getJSON("/_layouts/15/NexusApiProxy/SPPreSearchGrouped.ashx?query=" + preParseQueryForUrl(searchRequest.queryText))
+        .done(function (data) {
+            //logToConsole(data);
+            //var timeElapsed = Date.now() - start;
+            //logToConsole("SPSearch request took " + timeElapsed + "ms");    
+
+            if (data.resultGroups.length) {
+                spPreSearchResults = data.resultGroups;
+                searchRequest.sharepointPreSearchResults = spPreSearchResults;
+            }
+
+            tokenUtils.getToken(searchRequest, function (searchReq, tkn) { runWebApiSearch(searchReq, tkn, populateEverythingResults); });
+        })
+        .fail(function (jqXHR, textStatus) {
+            ajaxRequestFailed("spPreSearchViaProxy", textStatus);
+            tokenUtils.getToken(searchRequest, function (searchReq, tkn) { runWebApiSearch(searchReq, tkn, populateEverythingResults); });
+        });
+}
+function runWebApiSearch(requestData, token, populateEverythingResults) {
+    
+    //logToConsole(JSON.stringify(requestData));
+    var start = Date.now();
+
+    var url = apiUrl + "/search/query";
+    webApiSearchJob = jq18
+        .ajax({
+            url: url,
+            xhrFields: {
+                withCredentials: true
+            },
+            type: "POST",
+            data: JSON.stringify(requestData),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            headers: { "Authorization": "Bearer " + token }
+        })
+        .done(function (data) {
+            //logToConsole(data);
+            var timeElapsed = Date.now() - start;
+            //logToConsole("WebApiSearch request took " + timeElapsed + "ms");
+            webApiSearchSuccess(data, populateEverythingResults);
+        })
+        .fail(function (jqXHR, textStatus) {
+            ajaxRequestFailed("webApiSearch", textStatus);
+        });
+
+}
+function getWebApiSearchType(scope) {
+    switch (scope) {
+        case "Documents":
+            return "Document";
+        case "Videos":
+            return "Video";
+        case "Communities":
+            return "Community";
+        case "Topics":
+            return "Topic";
+        case "Employees":
+            return "Employee";
+        case "Projects":
+            return "Project";
+        case "Companies":
+            return "Company";
+        case "Opportunities":
+            return "Opportunity";
+        case "Contacts":
+            return "Contact";
+        case "Wiki Pages":
+            return "WikiPage";
+        case "Events":
+            return "Event";
+        case "Images":
+            return "Image";
+        case "Links":
+            return "Link";
+        case "Other Results":
+            return "OtherResult";
+        case "Posts":
+            return "Stream";
+        default:
+            return "All";
+    }
+}
+function getResultGroupHeaderFromWebApiResultGroup(resultGroupName) {
+    if (resultGroupName == "WikiPages")
+        return "Wiki Pages";
+    else if (resultGroupName == "OtherResults")
+        return "Other Results";
+    else
+        return resultGroupName;
+}
+function webApiSearchSuccess(json, populateEverythingResults) {
+
+    var isEverythingGroup = false;
+    if (populateEverythingResults || queryObj.selectedScope == "Everything")
+        isEverythingGroup = true;
+
+    if (json && json.results) {
+
+        noResults = false;
+        
+        jq18.each(json.results, function (i, resultGroupFromWebApi) {
+            if (resultGroupFromWebApi && resultGroupFromWebApi.returnedResultsCount > 0 && resultGroupFromWebApi.resultGroup != "OtherResults") {
+
+                var header = getResultGroupHeaderFromWebApiResultGroup(resultGroupFromWebApi.resultGroup);
+                
+                if (queryObj.selectedScope == header)
+                    noResultsForScope = false;
+
+                var results = [];
+                jq18.each(resultGroupFromWebApi.results, function (i, r) {
+                    r.elasticEntityType;
+                    if (!r.elasticEntityType && r.itemID)
+                        r.elasticEntityType = "Stream";
+
+                    transformWebApiResult(r.elasticEntityType, r);
+                    results.push(r);
+                });
+
+                var facets = [];
+                if (queryObj.selectedScope != "Everything") {
+                    facets = transformWebApiRefinements(resultGroupFromWebApi.refinements);
+                }
+
+                var pageSize = searchConfig.pageSize;
+                if (isEverythingGroup && header != "BestBets")
+                    pageSize = searchConfig.groupDisplayLimit;
+                else if (resultGroupFromWebApi.resultGroup == "Images")
+                    pageSize = searchConfig.imagePageSize;
+
+                if (header == "BestBets") {
+
+                    header = "Best Bets";
+                    if (resultGroupFromWebApi.totalHits == 1)
+                        header = "Best Bet";
+                }
+
+                var resultGroup = new searchResultsGroup(header, resultGroupFromWebApi.totalHits, results, facets, pageSize, isEverythingGroup);
+
+                if (isEverythingGroup) 
+                    everythingResults.push(resultGroup);
+
+                if (!populateEverythingResults)
+                    currentPageResults.push(resultGroup);
+
+            }
+        });        
+    }
+
+    webApiReq = false;
+
+    if (!spReq && !lockResults) {
+        lockResults = true;
+        if (everythingResults.length > 0) {
+
+            if (populateEverythingResults) {
+                initSearch();
+            }
+            else {
+
+                noResults = false;
+
+                if (noResultsForScope) {
+                    queryObj.selectedScope = "Everything";
+                    queryObj.selectedFacets = [];
+                    currentPageResults = everythingResults;
+                    window.location.hash = setURLHash(queryObj.queryText, "Everything", null, 0, queryObj.selectedSuggestion);
+                }
+
+                formatAllResults();
+            }
+        }
+        else {
+            jq18("img.loading").addClass("ka_HiddenElement");
+            displayNoResults();
+        }
+    }   
+
+}
+
+function transformSPResult(result) {
+    result.source = "SharePoint";
+    if (result.lastModDate)
+        result.lastModDate = FormatDateTimeStamp(new Date(result.lastModDate));
+
+    result.icon = getSPDisplayIconUrl("Other Results", result.fileExtension, result.icon);
+    
+    result.lastModBy = result.authorName;
+    if (result.editorName) {
+        if (result.editorID)
+            result.lastModBy = '<a href="' + urlTemplates.employeeProfileUrl + '?Employee=' + result.editorID + '" clicklogid="Employee||' + result.editorID + '">' + result.editorName + '</a>';
+        else
+            result.lastModBy = result.editorName;
+    }
+    else if (result.authorID)
+        result.lastModBy = '<a href="' + urlTemplates.employeeProfileUrl + '?Employee=' + result.authorID + '" clicklogid="Employee||' + result.authorID + '">' + result.authorName + '</a>';
+
+    if (result.spListId) {
+        if (result.spListItemId) {
+            result.Identifier = result.spListId + "|" + result.spListItemId;
+            result.IdentifierPrefix = "Other Result|SharepointListItem";
+        }
+        else {
+            result.Identifier = result.spListId;
+            result.IdentifierPrefix = "SharepointList";
+            result.icon = "/_layouts/15/KA Search/icons/listIcon_40_r1.png";
+        }
+    }
+    else {
+        result.Identifier = result.title;
+        result.IdentifierPrefix = result.resultType;
+    }
+       
+    result.Scope = "Other Results";
+    result.IsOtherResult = true;
+}
+function transformSPRefinements(refinementsJson) {
+    var facetGroups = [];
+    fArray = [];
+
+    fArray.push(new facet("Community", "All", "ClearFacets", null));
+
+    if (refinementsJson && refinementsJson.length > 0) {
+
+        jq18.each(refinementsJson[0].facetGroupValues, function (v, refVals) {
+            if (refVals.matchedResultsCount && refVals.matchedResultsCount > 0) {
+                fArray.push(new facet("Community", refVals.facetName, refVals.spRefinementValue, refVals.matchedResultsCount));
+            }
+        });
+    }
+
+    facetGroups.push(new facetGroup("Community", fArray));
+    return facetGroups;
+}
+
+function transformWebApiResult(resultType, result) {
+
+    result.source = "WebApi";
+    result.score = result._score;
+
+    switch (resultType) {
+        case "LinkInstance":
+
+            result.path = result.url;
+            result.displayUrl = result.url;
+            var startIndex = result.url.indexOf("://");
+            if (startIndex > -1)
+                result.displayUrl = result.url.substring(startIndex + 3);
+
+            if (result.listItem) {
+                result.Identifier = result.listItem.listID + "|" + result.listItem.itemID;
+                result.IdentifierPrefix = "Link|SharepointListItem";
+            }
+            else if (result.navItem) {
+                result.IdentifierPrefix = "SharepointNavItem";
+                result.Identifier = result.navItem.siteID + "|" + result.navItem.nodeID;
+            }
+            else if (result.bestBetLinkID) {
+                result.IdentifierPrefix = "ExternalLink";
+                result.Identifier = "NoId";
+            }
+
+
+            result.Scope = "Links";
+            result.IsLink = true;
+
+            break;
+        case "ImageInstance":
+
+            if (result.listItem) {
+                result.Identifier = result.listItem.listID + "|" + result.listItem.itemID;
+                result.IdentifierPrefix = "Image|SharepointListItem";
+
+                result.title = result.listItem.displayName;
+                result.ImageUrl = result.listItem.relativeURL;
+                if (result.listItem.itemData) {
+
+                    if (result.listItem.itemData.fileName)
+                        result.title = result.listItem.itemData.fileName
+                    else if (result.listItem.itemData.fileExtension)
+                        result.title += result.listItem.itemData.fileExtension;
+
+                    if (result.listItem.itemData.fileSizeInBytes && result.listItem.itemData.fileSizeInBytes > 5000000 && !result.listItem.itemData.thumbnailRelativeURL) {
+                        result.oversizeImage = true;
+                        result.size = (result.listItem.itemData.fileSizeInBytes.toFixed(2) / 1000000).toFixed(2);
+                    }
+                    else
+                    {
+                        result.OriginalHeight = result.listItem.itemData.imageHeight;
+                        result.OriginalWidth = result.listItem.itemData.imageWidth;
+                    }
+
+                    if (result.listItem.itemData.fileExtension && result.listItem.itemData.fileExtension.toLowerCase() == "gif")
+                        result.IsGif = true;                }
+            }
+            else if (result.mediaItem) {
+                result.Identifier = result.mediaID;
+                result.IdentifierPrefix = "Image|MediaID";
+                result.ImageUrl = urlTemplates.imageProxyUrl + '?id=' + result.mediaID + '&size=240w180h';
+                result.IsMedia = true;
+
+                if (result.mediaItem.associatedEntity)
+                    result.title = result.mediaItem.associatedEntity.entityName;
+                else if (result.streamItemData)
+                    result.title = result.streamItemData[0].plainTextTitle;
+                else if (result.mediaItem.title)
+                    result.title = result.mediaItem.title;
+                else
+                    result.title = result.mediaItem.originalFilename;
+
+                result.OriginalHeight = result.mediaItem.originalHeight;
+                result.OriginalWidth = result.mediaItem.originalWidth;
+
+                if (result.mediaItem.mediaType && result.mediaItem.mediaType == "anim")
+                    result.IsGif = true;
+            }
+
+            result.Scope = "Images";
+            result.IsImage = true;         
+
+            break;
+        case "Stream":
+
+            var currentEmployeeIdLowerCase = employeeID.toLowerCase(); // from KAMasterPage global var
+
+            result.DisplayDate = FormatDateTimeStamp(new Date(result.dateStamp));
+            result.ProfileUrl = urlTemplates.threadUrl + '?ItemID=' + result.itemID;
+
+            var displayEntity = getPostDisplayEntity(result.entityOverride, result.subjectType, result.subjectID, result.author, result.mentions);
+
+            //logToConsole("DE: " + JSON.stringify(displayEntity));
+
+            result.DisplayEntityName = displayEntity.entityName;
+            result.DisplayEntityUrl = displayEntity.displayEntityURL;
+            result.DisplayImageCircular = displayEntity.displayImageCircular;
+            result.ImageUrl = displayEntity.displayImageURL;               
+
+            result.LikeIcon = "Like_Off.png"
+            if (result.likeCount) {
+                if (result.likeCount > 1)
+                    result.LikeText = result.likeCount + " Likes";
+                else
+                    result.LikeText = "1 Like";
+
+                if (result.likes) {
+                    jq18.each(result.likes, function (i, l) {
+                        if (l.author.employeeID.toLowerCase() == currentEmployeeIdLowerCase) {
+                            result.LikeIcon = "Like_On.png";
+                            return false;
+                        }
+                    });
+                }
+            }
+            else
+                result.LikeText = "Like";
+
+            if (result.commentCount) {
+                if (result.commentCount > 1)
+                    result.CommentText = result.commentCount + " Comments";
+                else
+                    result.CommentText = "1 Comment";
+            }
+            else
+                result.CommentText = "Comment";
+
+            result.Identifier = result.itemID;
+            result.Scope = "Posts";
+            result.IsStreamItem = true;
+            break;
+        case "Employee":
+            result.ImageUrl = getDisplayImageUrl(result.elasticEntityType, result.primaryImageID, null);
+            result.ProfileUrl = urlTemplates.employeeProfileUrl + '?Employee=' + result.employeeID;
+            result.Scope = "Employees";
+            result.IsEmployee = true;
+
+            if ((result.workPhone && result.workPhone != "") || (result.workPhoneExtension && result.workPhoneExtension != "")) {
+                result.WorkPhonePlusExtension = "";
+                if (result.workPhone)
+                    result.WorkPhonePlusExtension = result.workPhone + " ";
+                if (result.workPhoneExtension && result.workPhoneExtension != "")
+                    result.WorkPhonePlusExtension += "ext. " + result.workPhoneExtension;
+                result.WorkPhonePlusExtension = result.WorkPhonePlusExtension.trim();
+            }
+            break;
+        case "Project":
+            
+            var baseProfilePageUrl = urlTemplates.projectProfileUrl;
+            result.ImageUrl = getDisplayImageUrl(result.elasticEntityType, result.primaryImageID, null);
+
+            if (result.isOpportunity) {
+                baseProfilePageUrl = urlTemplates.opportunityProfileUrl;
+                result.ImageUrl = getDisplayImageUrl("Opportunity", result.primaryImageID, null);
+            }
+
+            if (result.client && !result.deleted && result.client.showInDirectory)
+                result.ClientProfileUrl = urlTemplates.companyProfileUrl + '?Company=' + result.client.companyID;                    
+
+            result.ProfileUrl = baseProfilePageUrl + '?Project=' + result.projectID;
+
+            result.Scope = "Projects";
+            result.IsProject = true;
+            break;
+        case "Company":
+            result.ImageUrl = getDisplayImageUrl(result.elasticEntityType, null, null);
+            result.ProfileUrl = urlTemplates.companyProfileUrl + '?Company=' + result.companyID;
+            result.Scope = "Companies";
+            result.IsCompany = true;
+
+            if (result.companyAddresses && result.companyAddresses.length > 0) {
+                if (result.companyAddresses[0].city) {
+                    result.City = result.companyAddresses[0].city;
+                    if (result.companyAddresses[0].state) {
+                        result.State = result.companyAddresses[0].state;
+                    }
+                }
+            }
+            break;
+        case "Opportunity":
+            result.ImageUrl = getDisplayImageUrl(result.elasticEntityType, null, null);
+            if (result.client && !result.deleted && result.client.showInDirectory)
+                result.ClientProfileUrl = urlTemplates.companyProfileUrl + '?Company=' + result.client.companyID;
+            result.ProfileUrl = urlTemplates.opportunityProfileUrl + '?Opportunity=' + result.opportunityID;
+            result.Scope = "Opportunities";
+            result.IsOpportunity = true;
+            break;
+        case "Contact":
+            result.ImageUrl = getDisplayImageUrl(result.elasticEntityType, null, null);
+            if (result.company && !result.deleted && result.company.showInDirectory)
+                result.CompanyProfileUrl = urlTemplates.companyProfileUrl + '?Company=' + result.company.companyID;
+            result.ProfileUrl = urlTemplates.contactProfileUrl + '?Contact=' + result.contactID;
+            result.Scope = "Contacts";
+            result.IsContact = true;
+            break;
+        case "Community":
+            result.Scope = "Communities";
+            result.IsCommunity = true;
+            break;
+        case "Topic":
+            result.ProfileUrl = urlTemplates.topicUrl + '?Hashtag=' + encodeURIComponent(result.hashtag);
+            result.Scope = "Topics";
+            result.IsHashtag = true;
+            break;
+        case "Document":
+
+            if (result.listItem && result.listItem.modified) {
+
+                if (result.listItem.modified.substr(-1) != 'Z')
+                    result.listItem.modified += 'Z';
+
+                result.displayDate = FormatDateTimeStamp(new Date(result.listItem.modified));
+            }
+            else if (result.dateUploaded)
+                result.displayDate = FormatDateTimeStamp(new Date(result.dateUploaded));
+            else if (result.modDate) {
+                if (result.modDate.substr(-1) != 'Z')
+                    result.modDate += 'Z';
+
+                result.displayDate = FormatDateTimeStamp(new Date(result.modDate));
+            }
+                
+                                    
+            if (!result.title)
+                result.title = result.originalFilename;
+
+            // If there is no file extension on the title add one
+            var splitTitle = result.title.split('.');
+            if (result.fileExtension) {
+                if (splitTitle.length < 2)
+                    result.title += "." + result.fileExtension;
+                else if (splitTitle.pop() != result.fileExtension)
+                    result.title += "." + result.fileExtension;
+            }
+
+            result.Scope = "Documents";
+            result.IsDocument = true;
+            result.icon = "/_layouts/15/KA Search/icons/" + getIconName(result.documentType) + ".png";
+
+            if (result.streamItemData) {
+
+                result.Identifier = result.documentID;
+                result.IdentifierPrefix = "Document|DocumentID";
+
+                result.path = urlTemplates.documentProxyUrl + '?id=' + result.documentID + '&name=' + result.originalFilename;
+
+                var si = result.streamItemData[0];
+                result.streamItemData = si;
+
+                result.streamItemUrl = urlTemplates.threadUrl + '?ItemID=' + result.streamItemData.itemID;
+
+                if (si.comment) {
+                    result.fromComment = true;
+                    result.authorName = si.comment.author.fullName;
+                    if (si.comment.author.showInDirectory)
+                        result.authorName = '<a href="' + urlTemplates.employeeProfileUrl + '?Employee=' + si.comment.author.employeeID + '" clicklogid="Employee||' + si.comment.author.employeeID + '">' + si.comment.author.fullName + '</a>';
+                }
+                else {
+                    result.fromComment = false;
+                    result.authorName = si.author.fullName;
+                    if (si.author.showInDirectory)
+                        result.authorName = '<a href="' + urlTemplates.employeeProfileUrl + '?Employee=' + si.author.employeeID + '" clicklogid="Employee||' + si.author.employeeID + '">' + si.author.fullName + '</a>';
+                }
+            }
+            else if (result.listItem) {
+
+                result.Identifier = result.listItem.listID + "|" + result.listItem.itemID;
+                result.IdentifierPrefix = "Document|SharepointListItem";
+                result.path = result.listItem.relativeURL;
+
+                if (result.listItem.modifiedBy) {
+                    result.authorName = result.listItem.modifiedBy.fullName;
+
+                    if (result.listItem.modifiedBy.showInDirectory)
+                        result.authorName = '<a href="' + urlTemplates.employeeProfileUrl + '?Employee=' + result.listItem.modifiedBy.employeeID + '" clicklogid="Employee||' + result.listItem.modifiedBy.employeeID + '">' + result.listItem.modifiedBy.fullName + '</a>';
+                }
+                else if (result.listItem.createdBy) {
+                    result.authorName = result.listItem.createdBy.fullName;
+
+                    if (result.listItem.createdBy.showInDirectory)
+                        result.authorName = '<a href="' + urlTemplates.employeeProfileUrl + '?Employee=' + result.listItem.createdBy.employeeID + '" clicklogid="Employee||' + result.listItem.createdBy.employeeID + '">' + result.listItem.createdBy.fullName + '</a>';
+                }
+            }            
+
+            break;
+        case "WikiPage":
+
+            if (result.listItem && result.listItem.modified) {
+
+                if (result.listItem.modified.substr(-1) != 'Z')
+                    result.listItem.modified += 'Z';
+
+                result.displayDate = FormatDateTimeStamp(new Date(result.listItem.modified));
+            }
+            else if (result.modDate) {
+                if (result.modDate.substr(-1) != 'Z')
+                    result.modDate += 'Z';
+
+                result.displayDate = FormatDateTimeStamp(new Date(result.modDate));
+            }
+
+
+            if (result.listItem && result.listItem.modifiedBy) {
+                result.authorName = result.listItem.modifiedBy.fullName;
+
+                if (result.listItem.modifiedBy.showInDirectory)
+                    result.authorName = '<a href="' + urlTemplates.employeeProfileUrl + '?Employee=' + result.listItem.modifiedBy.employeeID + '" clicklogid="Employee||' + result.listItem.modifiedBy.employeeID + '">' + result.listItem.modifiedBy.fullName + '</a>';
+            }
+            else if (result.author) {
+                result.authorName = result.author.fullName;
+
+                if (result.author.showInDirectory)
+                    result.authorName = '<a href="' + urlTemplates.employeeProfileUrl + '?Employee=' + result.author.employeeID + '" clicklogid="Employee||' + result.author.employeeID + '">' + result.author.fullName + '</a>';
+            }
+            else if (result.listItem && result.listItem.createdBy) {
+                result.authorName = result.listItem.createdBy.fullName;
+
+                if (result.listItem.createdBy.showInDirectory)
+                    result.authorName = '<a href="' + urlTemplates.employeeProfileUrl + '?Employee=' + result.listItem.createdBy.employeeID + '" clicklogid="Employee||' + result.listItem.createdBy.employeeID + '">' + result.listItem.createdBy.fullName + '</a>';
+            }
+
+            result.Scope = "Wiki Pages";
+            result.IsWikiPage = true;
+            break;
+        case "OtherListItem":
+
+            result.lastModDate = FormatDateTimeStamp(new Date(result.listItem.modified));
+
+            if (result.listItem && result.listItem.modifiedBy) {
+                result.authorName = result.listItem.modifiedBy.fullName;
+
+                if (result.listItem.modifiedBy.showInDirectory)
+                    result.authorName = '<a href="' + urlTemplates.employeeProfileUrl + '?Employee=' + result.listItem.modifiedBy.employeeID + '" clicklogid="Employee||' + result.listItem.modifiedBy.employeeID + '">' + result.listItem.modifiedBy.fullName + '</a>';
+            }
+            else if (result.listItem && result.listItem.createdBy) {
+                result.authorName = result.listItem.createdBy.fullName;
+
+                if (result.listItem.createdBy.showInDirectory)
+                    result.authorName = '<a href="' + urlTemplates.employeeProfileUrl + '?Employee=' + result.listItem.createdBy.employeeID + '" clicklogid="Employee||' + result.listItem.createdBy.employeeID + '">' + result.listItem.createdBy.fullName + '</a>';
+            }
+
+            result.Scope = "Other Results";
+            result.IsOtherListItem = true;
+            break;
+        case "SharepointList":            
+            result.lastModDate = FormatDateTimeStamp(new Date(result.modDate));
+            result.Scope = "Other Results";
+            result.IsSharepointList = true;
+            break;
+        case "VideoInstance":
+
+            // There are now 6 types of videos returned by the Web API:     
+            // Native Videos Embedded on a Page (PageMediaID - has a mediaItem and pageData) , 
+            // Native Videos in a Stream Item/Comment (MediaID - has a mediaItem and streamItemData)
+            // Oembed Videos placed on a Page (EmbeddedVideoID - has an embeddedVideoItem and pageData)
+            // Oembed Videos in a Stream Item/Comment (oEmbedContentID - has an embeddedVideoItem and streamItemData)
+            // Videos in OpenAsset that meet the MigrateToAzure criteria (MediaID - has mediaItem.sourceAsset)
+            // Videos stored in Sharepoint doc/asset libraries (listItemCompoundID - has a listItem)
+
+            if (result.mediaItem)
+            {
+                if (result.mediaItem.dateUploaded)
+                    result.dateStamp = result.mediaItem.dateUploaded;
+
+                if (result.mediaItem.caption && result.mediaItem.caption != "")
+                    result.title = result.mediaItem.caption;
+                else
+                    result.title = result.mediaItem.title;
+
+                if (result.mediaItem.duration)
+                    result.duration = FormatDuration(result.mediaItem.duration);
+                
+                if (result.mediaItem.sourceAsset)
+                {                    
+                    result.identifier = "Video|DAMImageID||" + result.mediaItem.sourceAsset.sourceAssetFilename;
+                    result.imageUrl = urlTemplates.imageProxyUrl + '?id=' + result.mediaID + '&size=240w240h';
+                    result.profileUrl = result.mediaItem.sourceAsset.recordURL;
+                }
+                else if (result.streamItemData)
+                {
+                    result.identifier = "Video|MediaID||" + result.mediaID;
+
+                    if (result.mediaItem.previewImageFilename)
+                        result.imageUrl = apiUrl + "/video/" + result.mediaID + "/blob" + insertSizeIntoVideoPreviewFilename(result.mediaItem.previewImageFilename);
+
+                    var si = result.streamItemData[0];
+                    result.streamItemData = si;
+
+                    result.streamItemUrl = urlTemplates.threadUrl + '?ItemID=' + result.streamItemData.itemID;
+                    
+                    if (si.comment) {
+                        result.mediaModal = true;
+                        result.authorName = si.comment.author.fullName;
+                        if (si.comment.author.showInDirectory)
+                            result.authorName = '<a href="' + urlTemplates.employeeProfileUrl + '?Employee=' + si.comment.author.employeeID + '" clicklogid="Employee||' + si.comment.author.employeeID + '">' + si.comment.author.fullName + '</a>';
+
+                        if (!result.dateStamp)
+                            result.dateStamp = si.comment.dateStamp;
+                    }
+                    else {
+                        result.mediaModal = true;
+                        result.authorName = si.author.fullName;
+                        if (si.author.showInDirectory)
+                            result.authorName = '<a href="' + urlTemplates.employeeProfileUrl + '?Employee=' + si.author.employeeID + '" clicklogid="Employee||' + si.author.employeeID + '">' + si.author.fullName + '</a>';
+
+                        if (!result.dateStamp)
+                            result.dateStamp = si.dateStamp;
+                    }
+                }
+                else if (result.pageData)
+                {
+                    result.identifier = "Video|PageMediaID||" + result.pageMediaID;
+
+                    if (result.mediaItem.previewImageFilename)
+                        result.imageUrl = apiUrl + "/video/" + result.mediaID + "/blob" + insertSizeIntoVideoPreviewFilename(result.mediaItem.previewImageFilename);
+
+                    result.mediaModal = true;
+                }
+            }
+            else if (result.embeddedVideoItem)
+            {
+                result.title = result.embeddedVideoItem.title;
+
+                if (result.embeddedVideoItem.duration)
+                    result.duration = FormatDuration(result.embeddedVideoItem.duration);
+
+                if (result.embeddedVideoItem.thumbnailMediaID && result.embeddedVideoItem.thumbnailMediaID != "00000000-0000-0000-0000-000000000000")
+                    result.imageUrl = urlTemplates.imageProxyUrl + '?id=' + result.embeddedVideoItem.thumbnailMediaID + '&size=240w240h';
+                else if (result.embeddedVideoItem.thumbnailURL)
+                    result.imageUrl = result.embeddedVideoItem.thumbnailURL;                
+
+                if (result.streamItemData)
+                {
+                    var si = result.streamItemData[0];
+                    result.streamItemData = si;
+
+                    result.identifier = "Video|ItemID||" + result.streamItemData.itemID;
+                    
+                    result.streamItemUrl = urlTemplates.threadUrl + '?ItemID=' + result.streamItemData.itemID;
+
+                    if (si.comment) {
+                        result.mediaModal = true;
+                        result.authorName = si.comment.author.fullName;
+                        if (si.comment.author.showInDirectory)
+                            result.authorName = '<a href="' + urlTemplates.employeeProfileUrl + '?Employee=' + si.comment.author.employeeID + '" clicklogid="Employee||' + si.comment.author.employeeID + '">' + si.comment.author.fullName + '</a>';
+
+                        if (!result.dateStamp)
+                            result.dateStamp = si.comment.dateStamp;
+                    }
+                    else {
+                        result.mediaModal = true;
+                        result.authorName = si.author.fullName;
+                        if (si.author.showInDirectory)
+                            result.authorName = '<a href="' + urlTemplates.employeeProfileUrl + '?Employee=' + si.author.employeeID + '" clicklogid="Employee||' + si.author.employeeID + '">' + si.author.fullName + '</a>';
+
+                        if (!result.dateStamp)
+                            result.dateStamp = si.dateStamp;
+                    }
+                }
+                else if (result.pageData)
+                {
+                    result.identifier = "Video|EmbeddedVideoID||" + result.embeddedVideoID;
+                    result.mediaModal = true;
+
+                    result.dateStamp = result.modDate;
+                    if (result.embeddedVideoItem.oEmbedResponseJson && result.embeddedVideoItem.oEmbedResponseJson.upload_date) {
+                        result.dateStamp = result.embeddedVideoItem.oEmbedResponseJson.upload_date;
+                    }
+                }
+            }
+            else if (result.listItem)
+            {
+                result.title = result.listItem.displayName;
+
+                if (result.listItem.itemData) {
+                    if (result.listItem.itemData.modified)
+                        result.dateStamp = FormatDateTimeStamp(new Date(result.listItem.itemData.modified));
+                    else if (result.listItem.itemData.created)
+                        result.dateStamp = FormatDateTimeStamp(new Date(result.listItem.itemData.created));
+                        
+
+                    if (result.listItem.itemData.displayFormRelativeURL)
+                        result.profileUrl = result.listItem.itemData.displayFormRelativeURL;
+                }
+            }
+   
+            
+            var allowedTitleLength = 75;
+            if (result.title && result.title.length > allowedTitleLength) {
+                var newVideoTitle = result.title.substring(0, allowedTitleLength);
+                while (/\w/.test(result.title[newVideoTitle.length]))
+                    newVideoTitle = newVideoTitle.substring(0, newVideoTitle.length - 1)
+                result.title = newVideoTitle + '&hellip;';
+            }
+
+            if (!result.dateStamp && result.modDate) {
+                result.dateStamp = result.modDate;
+            }
+
+            if (result.dateStamp) {
+                result.formattedDateStamp = FormatDateTimeStamp(new Date(result.dateStamp));
+            }
+
+            result.videoInstanceID = result.elastic_id.split("|")[2];
+            result.IdentifierPrefix = "Video";
+            result.Scope = "Videos";
+            result.IsVideo = true;
+
+            break;
+        case "CalendarEvent":
+            result.startTime = new Date(result.startTime);
+            result.eventMonth = monthNames[result.startTime.getMonth()].toUpperCase();
+            result.eventDay = result.startTime.getDate();
+            result.eventYear = result.startTime.getFullYear();
+
+            if (result.allDayEvent)
+                result.eventTime = "All Day Event";
+            else if (result.recurringEvent)
+                result.eventTime = "Recurring Event. This instance begins at " + FormatEventTime(result.startTime);
+            else
+                result.eventTime = FormatEventTime(result.startTime);
+
+            result.Scope = "Events";
+            result.IsEvent = true;
+            break;
+        default:
+            result.Scope = "Other Results";
+            result.IsOtherResult = true;
+            break;
+    }
+}
+function transformWebApiRefinements(refinementsJson) {
+    var facetGroups = []
+
+    jq18.each(refinementsJson, function (i, refGroup) {
+        fArray = [];
+
+        fArray.push(new facet(refGroup.refinementGroupName, "All", "ClearFacets", null));
+
+        jq18.each(refGroup.refinementGroupValues, function (v, refVals) {
+            if (refVals.docCount && refVals.docCount > 0) {
+                fArray.push(new facet(refGroup.refinementGroupName, refVals.refinementDisplayName, refVals.refinementValue, refVals.docCount));
+            }
+        });
+
+        facetGroups.push(new facetGroup(refGroup.refinementGroupName, fArray));
+    });
+
+    return facetGroups;
+}
+function checkBestBetsPermissions(resultGroup, callback) {
+
+    var elasticIDsPassed = [];
+    var resultsToCheck = jq18.grep(resultGroup.currentPageResults, function (result) {
+        if (!isAdminPage && (result.elasticEntityType == "SharepointList" || result.listItem || result.navItem || result.pageData)) {
+            return true;
+        }
+        else {
+            elasticIDsPassed.push(result.elastic_id);
+            return false;
+        }
+    });
+
+    if (resultsToCheck.length > 0) {
+
+        logToConsole("about to check permissions for some best bets");
+
+        var url = "/_layouts/15/NexusAPIProxy/CheckSearchResultPermissions.ashx";
+
+        jq18.ajax({
+            url: url,
+            type: "POST",
+            data: JSON.stringify(resultsToCheck),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json"
+        })
+        .done(function (data) {
+            logToConsole(data);
+
+            if (data.results.length > 0) {
+
+                jq18.each(data.results, function (i, result) {
+                    elasticIDsPassed.push(result.elastic_id);
+                });
+            }
+
+            logToConsole(elasticIDsPassed);
+
+            resultGroup.currentPageResults = jq18.grep(resultGroup.currentPageResults, function (cpr) {
+                if (elasticIDsPassed.indexOf(cpr.elastic_id) > -1)
+                    return true;
+                else
+                    return false;
+            });
+            
+            if (resultGroup.currentPageResults.length > 0)
+                callback(resultGroup);
+        })
+        .fail(function (jqXHR, textStatus) {
+            ajaxRequestFailed("checkBestBetsPermissions", textStatus);
+        });
+    }
+    else
+        callback(resultGroup);
+}
+
+function getPostDisplayEntity(entityOverride, subjectType, subjectID, author, mentions) {
+    var displayEntity = null;
+    if (author != null && (entityOverride == 'Author' || subjectType == null || subjectID == null || (subjectType == 'Employee' && subjectID == author.employeeID))) {
+        displayEntity = author;
+        displayEntity.entityName = author.fullName;
+        displayEntity.displayImageURL = getDisplayImageUrl("Employee", displayEntity.primaryImageID, null);
+        displayEntity.displayImageCircular = true;
+
+        if (displayEntity.showInDirectory || displayEntity.showInCompanyDirectory == "Y")
+            displayEntity.displayEntityURL = getDisplayEntityUrl("Employee", author.employeeID);
+    }    
+    else if (mentions != null) {
+        var matchingMentions = jq18.grep(mentions, function (m) {
+            return m.entityType === subjectType && m.entityID.toLowerCase() === subjectID.toLowerCase();
+        });
+        if (matchingMentions && matchingMentions.length > 0) {
+            displayEntity = matchingMentions[0];
+
+            displayEntity.displayImageURL = getDisplayImageUrl(displayEntity.entityType, displayEntity.entityImageID, null);
+
+            if (displayEntity.entityType == "Employee")
+                displayEntity.displayImageCircular = true;
+
+            if (displayEntity.hasProfile)
+                displayEntity.displayEntityURL = getDisplayEntityUrl(displayEntity.entityType, displayEntity.entityID);
+        }
+    }
+
+    if (displayEntity == null && author != null) {
+        displayEntity = author;
+        displayEntity.entityName = author.fullName;
+        displayEntity.displayImageURL = getDisplayImageUrl("Employee", displayEntity.primaryImageID, null);
+        displayEntity.displayImageCircular = true;
+
+        if (displayEntity.showInDirectory || displayEntity.showInCompanyDirectory == "Y")
+            displayEntity.displayEntityURL = getDisplayEntityUrl("Employee", author.employeeID);
+    }
+
+    if (displayEntity == null)
+        displayEntity = {};
+
+    return displayEntity;
+}
+function getDisplayImageUrl(imageType, imageID, overrideUrl) {
+    if (overrideUrl)
+        return overrideUrl;
+    else if (imageType && imageID && imageID != "00000000-0000-0000-0000-000000000000")
+        return urlTemplates.imageProxyUrl + '?id=' + imageID + '&size=50w50h_fxd';
+    else
+        return urlTemplates.placeholderUrl + '?id=' + (imageType || 'Employee') + '&size=50w50h_fxd';
+}
+function getDisplayEntityUrl(entityType, entityID) {
+    switch (entityType) {
+        case "Employee":
+            return urlTemplates.employeeProfileUrl + '?Employee=' + entityID;
+            break;
+        case "Project":
+            return urlTemplates.projectProfileUrl + '?Project=' + entityID;
+            break;
+        case "Contact":
+            return urlTemplates.contactProfileUrl + '?Contact=' + entityID;
+            break;
+        case "Company":
+            return urlTemplates.employeeProfileUrl + '?Company=' + entityID;
+            break;
+        case "Opportunity":
+            return urlTemplates.opportunityProfileUrl + '?Opportunity=' + entityID;
+            break;
+    }
+}
+
+function formatAllResults()
+{
+    jq18("img.loading").addClass("ka_HiddenElement");
+
+    //logToConsole("EVERYTHING RESULTS: " + JSON.stringify(everythingResults));
+    //logToConsole("CURRENT PAGE RESULTS: " + JSON.stringify(currentPageResults));
+
+    buildScopesPanel();
+
+    hasLeftColumnResult = false;
+    var finalHitCount = 0;
+    jq18.each(currentPageResults, function (i, group) {
+        if (queryObj.selectedScope == "Everything" || queryObj.selectedScope == group.header || group.header.indexOf("Best Bet") > -1) {
+
+            if (queryObj.selectedScope == "Everything" && searchConfig.leftColumnResultsOrder.indexOf(group.header) > -1)
+                hasLeftColumnResult = true;
+
+            finalHitCount += group.hitCount;
+
+            if (group.header.indexOf("Best Bet") > -1)
+                checkBestBetsPermissions(group, formatResultGroup);
+            else 
+                formatResultGroup(group);
+        }
+
+        if (queryObj.selectedScope == group.header && group.facets.length > 0)
+            renderFacetsList(group);
+    });
+
+    
+    logQuery(finalHitCount);
+    
+     
+}
+function formatResultGroup(group) {
+
+    if (group.showPaging)
+        buildPagination(group);
+
+    //logToConsole("GROUP: " + JSON.stringify(group));
+
+    var mustacheTemplateName = "";
+    if (group.header == "Best Bet" || group.header == "Best Bets")
+        mustacheTemplateName = "BestBets_Results.htm";
+    else
+        mustacheTemplateName = group.header.replace(' ', '_') + '_Results.htm';
+    var groupDiv = "";
+       
+    if (resultTemplates[mustacheTemplateName]) {
+        groupDiv = jq18(Mustache.render(resultTemplates[mustacheTemplateName], group));
+        placeResultsOnPage(group.header, groupDiv);
+    }
+    else {
+        jq18.get('/_Layouts/15/KA Search/mustache/' + mustacheTemplateName + '?r=' + Date.now(), function (template) {
+            resultTemplates[mustacheTemplateName] = template;//cache it for future searches
+            groupDiv = jq18(Mustache.render(template, group));
+            placeResultsOnPage(group.header, groupDiv);
+        });
+    }
+}
+
+function placeResultsOnPage(groupName, divGroup)
+{
+    //logToConsole("groupName: " + groupName);
+    //logToConsole("divGroup: " + JSON.stringify(divGroup));
+
+    if (groupName == "Best Bet" || groupName == "Best Bets") {
+        if (jq18('#ka_SearchResultGroup_BestBets').length > 0) {
+            logToConsole("BestBets group is already on the page for some reason. Not placing this div.");            
+            return false;
+        }
+    }
+    else {
+        if (jq18('#ka_SearchResultGroup_' + groupName.replace(' ', '_')).length > 0) {
+            logToConsole(groupName + " group is already on the page for some reason. Not placing this div.");
+            return false;
+        }
+    }       
+
+    logToConsole("Placing " + groupName + " group on page");
+
+    if (queryObj.selectedScope != "Everything") {
+        if (groupName == "Best Bet" || groupName == "Best Bets")
+            divGroup.prependTo("#ka_SearchResultsLeftColumn");
+        else
+            jq18("#ka_SearchResultsLeftColumn").append(divGroup);
+    }
+    else {
+        if (groupName == "Best Bet" || groupName == "Best Bets")
+            if (hasLeftColumnResult)
+                divGroup.prependTo("#ka_SearchResultsLeftColumn");
+            else {
+                jq18("#ka_SearchResultsRightColumn").width("600px");
+                divGroup.prependTo("#ka_SearchResultsRightColumn");
+            }
+        else {
+
+            var resultOrderArray = searchConfig.leftColumnResultsOrder;
+            if (searchConfig.rightColumnResultsOrder.indexOf(groupName) > -1)
+                resultOrderArray = searchConfig.rightColumnResultsOrder;
+
+            var myTypePredecessor = getResultTypePredecessor(groupName, resultOrderArray);
+            if (myTypePredecessor.length == 0) {
+                if (resultOrderArray == searchConfig.rightColumnResultsOrder) {
+
+                    if (jq18("#ka_SearchResultsRightColumn > #ka_SearchResultGroup_BestBets").length > 0)
+                        divGroup.insertAfter("#ka_SearchResultGroup_BestBets");
+                    else
+                        divGroup.prependTo("#ka_SearchResultsRightColumn");
+                }
+                else {
+                    if (jq18("#ka_SearchResultsLeftColumn > #ka_SearchResultGroup_BestBets").length > 0)
+                        divGroup.insertAfter("#ka_SearchResultGroup_BestBets");
+                    else
+                        divGroup.prependTo("#ka_SearchResultsLeftColumn");
+                }
+            }
+            else
+                divGroup.insertAfter(myTypePredecessor);
+        }
+    }
+
+    if (queryObj.selectedScope == "Everything" || queryObj.selectedScope == "Images")
+        linkifyMedia('#ka_SearchResultGroup_Images > .ka_SearchResultItem');
+    if (queryObj.selectedScope == "Everything" || queryObj.selectedScope == "Videos") {
+        linkifyMediaResult('#ka_SearchResultGroup_Videos div.ka_MediaModalLink');
+        linkifyMediaResult('#ka_SearchResultGroup_Videos h2.ka_MediaModalLink');
+        linkifyMediaResult('#ka_SearchResultGroup_BestBets div.ka_MediaModalLink');
+        linkifyMediaResult('#ka_SearchResultGroup_BestBets h2.ka_MediaModalLink');
+    }
+
+    if (groupName == "Best Bet" || groupName == "Best Bets")
+        addClickLoggingToGroup('Link', '#ka_SearchResultGroup_BestBets > .ka_SearchResultItem a');
+    else if (groupName == "Images")
+        addClickLoggingToGroup('Image', '#ka_SearchResultGroup_Images > .ka_SearchResultItem img');
+    else
+        addClickLoggingToGroup('Link', '#ka_SearchResultGroup_' + groupName.replace(' ', '_') + ' > .ka_SearchResultItem a');
+
+    if(groupName=='Posts') logPostAnalytics();
+}
+function getResultTypePredecessor(type, resultOrderArray) {
+    var myTypeIndex = resultOrderArray.indexOf(type);
+    if (myTypeIndex == 0) return [];
+    for (var i = myTypeIndex - 1; i >= 0; i--) {
+        var predecessor = jq18('#ka_SearchResultGroup_' + resultOrderArray[i].replace(' ', '_'));
+        if (predecessor.length > 0) return predecessor;
+    }
+    return [];
+}
+
+// FACETED SEARCH STUFF BELOW
+var facetConfig = {
+    postsFacets: ["My Activity", "Posted", "Author", "Community", "Topic"],
+    imagesFacets: ["Source", "Size", "Uploaded"],
+    documentsFacets: ["Document Type", "Uploaded", "Community"],
+    videosFacets: ["Source", "Uploaded", "Community"],
+    wikisFacets: ["Last Modified", "Community"],
+    projectsFacets: ["Client Name", "Status", "Project Type"],
+    opportunitesFacets: ["Client Name", "Stage", "Opportunity Type"],
+    contactsFacets: ["Company", "Title", "City"],
+    eventsFacets: ["Time Frame", "Community"],
+    staticFacetOrder: ["All", "Intranet", "DAM", "Past 7 Days", "Past 30 Days", "Past 12 Months", "Over 12 Months", "Small", "Medium", "Large", "Wrote", "Commented", "Liked"],
+    facetLimit: 6,
+    facetMoreLimit: 21
+}
+function facet(facetGroupName, facetDisplayName, facetValue, matchedResultsCount) {
+    this.facetGroupName = facetGroupName;
+    this.facetName = facetDisplayName;
+    this.facetValue = facetValue;
+    this.matchedResultsCount = matchedResultsCount;
+    if (matchedResultsCount > 100) this.matchedResultsDisplay = "100+"; else this.matchedResultsDisplay = matchedResultsCount;
+    this.urlHash = setURLHash(queryObj.queryText, queryObj.selectedScope, this, 0, queryObj.selectedSuggestion);
+    this.facetAttributeValue = convertFacetToEncodedString(this.facetGroupName, this.facetValue);
+}
+function facetGroup(facetGroupName, facetsArray) {
+    this.facetGroupID = facetGroupName.replace(/ /g, '_');
+    this.facetGroupName = facetGroupName;
+    this.unlimitedFacets = facetsArray;
+
+    if (facetsArray.length > facetConfig.facetMoreLimit)
+        facetsArray = facetsArray.slice(0, facetConfig.facetMoreLimit);
+
+    if (facetsArray.length > facetConfig.facetLimit) {
+        this.facetGroupValues = facetsArray.slice(0, facetConfig.facetLimit);
+        this.moreFacets = facetsArray.slice(facetConfig.facetLimit, facetsArray.length);
+    }
+    else {
+        this.facetGroupValues = facetsArray;
+    }
+    if (facetsArray.length > facetConfig.facetLimit) this.showMoreFacets = true; else showMoreFacets = false;
+}
+function selectedFacet(facetGroupName, facetValue) {
+    this.facetGroupName = facetGroupName;
+    this.facetValue = facetValue;
+}
+
+function renderFacetsList(group)
+{
+    jq18('#ka_SearchResultsRightColumn').empty();
+    logToConsole("ALL FACET GROUPS IN RENDER FACETS LIST: " + JSON.stringify(group.facets));
+    logToConsole("SELECTED FACETS: " + JSON.stringify(queryObj.selectedFacets));
+        
+        // RENDER FACETS LIST, IDENTIFYING THOSE THAT HAVE BEEN SLEECTED
+        var mustacheTemplateName = 'FacetsList.htm';
+        var facetsDiv = "";
+
+        if (resultTemplates[mustacheTemplateName]) {
+            facetsDiv = jq18(Mustache.render(resultTemplates[mustacheTemplateName], { allFacetGroups: group.facets }));
+            jq18('#ka_SearchResultsRightColumn').append(facetsDiv);
+
+            jq18.each(group.facets, function (i, val) {
+                jq18('.ka_SearchFacet[data-facet="' + convertFacetToEncodedString(val.facetGroupName, "ClearFacets") + '"]').addClass('ka_SelectedFacet');
+            });
+            jq18.each(queryObj.selectedFacets, function (i, val) {
+                jq18('.ka_SearchFacet[data-facet="' + convertFacetToEncodedString(val.facetGroupName, val.facetValue) + '"]').addClass('ka_SelectedFacet').parent().siblings().children().removeClass('ka_SelectedFacet');
+                jq18('.ka_SearchFacet[data-facet="' + convertFacetToEncodedString(val.facetGroupName, val.facetValue) + '"]').parent().siblings().children().not('[data-facet*="ClearFacets"]').parent().remove();
+            });
+        }
+        else {
+            jq18.get('/_Layouts/15/KA Search/mustache/' + mustacheTemplateName + '?r=' + Date.now(), function (template) {
+                resultTemplates[mustacheTemplateName] = template;//cache it for future searches
+                facetsDiv = jq18(Mustache.render(template, { allFacetGroups: group.facets }));
+                jq18("#ka_SearchResultsRightColumn").append(facetsDiv);
+
+                jq18.each(group.facets, function (i, val) {
+                    jq18('.ka_SearchFacet[data-facet="' + convertFacetToEncodedString(val.facetGroupName, "ClearFacets") + '"]').addClass('ka_SelectedFacet');
+                });
+                jq18.each(queryObj.selectedFacets, function (i, val) {
+                    jq18('.ka_SearchFacet[data-facet="' + convertFacetToEncodedString(val.facetGroupName, val.facetValue) + '"]').addClass('ka_SelectedFacet').parent().siblings().children().removeClass('ka_SelectedFacet');
+                    jq18('.ka_SearchFacet[data-facet="' + convertFacetToEncodedString(val.facetGroupName, val.facetValue) + '"]').parent().siblings().children().not('[data-facet*="ClearFacets"]').parent().remove();
+                });
+            });
+        }
+            
+}
+function selectFacet(selectedElement)
+{
+    searchLogTimerStart = Date.now();
+
+    var selectedElementFacet = convertEncodedFacetStringToSelectedFacet(jq18(selectedElement).attr("data-facet"));
+
+    if (queryObj.selectedFacets.length > 0) {
+        queryObj.selectedFacets = jq18.grep(queryObj.selectedFacets, function (a) {
+            return a.facetGroupName != selectedElementFacet.facetGroupName;
+        });
+    }
+
+    if (selectedElementFacet.facetValue != "ClearFacets") {               
+        queryObj.selectedFacets.push(selectedElementFacet);
+    }
+    
+    jq18("img.loading").removeClass("ka_HiddenElement");
+    jq18("#ka_SearchResultsLeftColumn").empty();
+    jq18("#ka_SearchScopesPanel").scrollTop();
+
+    queryObj.currentPageIndex = 0;
+    initSearch();
+
+}
+function convertFacetToEncodedString(facetGroupName, facetValue) {
+    return encodeURIComponent(facetGroupName + '_eq_' + facetValue);
+}
+function convertEncodedFacetStringToSelectedFacet(encodedString) {
+    var decodedString = decodeURIComponent(encodedString);
+    var facetGroupName = decodedString.split('_eq_')[0];
+    var facetValue = decodedString.split('_eq_')[1];
+    return new selectedFacet(facetGroupName, facetValue);
+}
+function expandFacets(categoryId)
+{
+    jq18(".ka_MoreFacet_" + categoryId).slideDown(400, function () {
+        jq18(".ka_MoreFacets_" + categoryId).html('<a onmouseover="collapseFacets(\'' + categoryId + '\')" >Less <img src="/_layouts/15/images/KAWebParts/Less_cyan.png"></a>');
+    });
+}
+function collapseFacets(categoryId) {
+    jq18(".ka_MoreFacet_" + categoryId).slideUp(400, function () {
+        jq18(".ka_MoreFacets_" + categoryId).html('<a onmouseover="expandFacets(\'' + categoryId + '\')" >More <img src="/_layouts/15/images/KAWebParts/More_cyan.png"></a>');
+    });   
+}
+function convertSelectedFacetsToSharepointRefinements(selFacets) {
+    spRefs = [];
+
+    if (selFacets) {
+        jq18.each(selFacets, function (i, selFacet) {
+            spRefs.push({ "facetGroupName": selFacet.facetGroupName, "spRefinementValue": selFacet.facetValue });
+        });
+    }
+
+    return spRefs;
+}
+function convertSelectedFacetsToWebApiRefinements(selFacets) {
+    webApiRefs = [];
+    
+    if (selFacets) {
+        jq18.each(selFacets, function (i, selFacet) {
+            webApiRefs.push({ "refinementKey": selFacet.facetGroupName, "refinementValue": selFacet.facetValue });
+        });
+    }
+
+    return webApiRefs;
+}
+
+// PAGINATION
+function buildPagination(group) 
+{
+    var itemsPerPage = searchConfig.pageSize;
+    if (queryObj.selectedScope == "Images")
+        itemsPerPage = searchConfig.imagePageSize;
+
+    if (group.showPaging) {
+        currentStartIndex = queryObj.currentPageIndex * itemsPerPage;
+        var nextStartIndex = currentStartIndex + itemsPerPage;
+        
+        if (queryObj.currentPageIndex > 0) 
+            var ppIndex = queryObj.currentPageIndex - 1;
+        
+        if (group.currentPageResults.length == itemsPerPage)
+            group.pagingLabel = " " + (currentStartIndex + 1) + " - " + nextStartIndex + " ";
+        else
+            group.pagingLabel = " " + (currentStartIndex + 1) + " - " + (currentStartIndex + group.currentPageResults.length)  + " ";
+
+        if (queryObj.currentPageIndex > 1)
+            group.showStart = true;
+        else
+            group.showStart = false;
+
+        if (queryObj.currentPageIndex > 0)
+            group.showPrev = true;
+        else
+            group.showPrev = false;
+
+        if (group.hitCount > nextStartIndex)
+            group.showNext = true;
+        else
+            group.showNext = false;
+    }   
+}
+function goNextPage()
+{
+    queryObj.currentPageIndex++;
+    window.location.hash = setURLHash(queryObj.queryText, queryObj.selectedScope, "Current", queryObj.currentPageIndex, queryObj.selectedSuggestion);
+    jq18("#ka_SearchScopesPanel").scrollTop();
+    initSearch();  
+}
+function goPrevPage()
+{
+    queryObj.currentPageIndex--;
+    window.location.hash = setURLHash(queryObj.queryText, queryObj.selectedScope, "Current", queryObj.currentPageIndex, queryObj.selectedSuggestion);
+    jq18("#ka_SearchScopesPanel").scrollTop();
+    initSearch();
+}
+function goStartPage()
+{
+    queryObj.currentPageIndex = 0;
+    window.location.hash = setURLHash(queryObj.queryText, queryObj.selectedScope, "Current", queryObj.currentPageIndex, queryObj.selectedSuggestion);
+    jq18("#ka_SearchScopesPanel").scrollTop();
+    initSearch();
+}
+
+function getResultGroupFromArrayByName(resultGroupArray, name)
+{
+    //logToConsole("resultGroupArray: " + JSON.stringify(resultGroupArray));
+    //logToConsole("name: " + name);
+    var filteredArray = jq18.grep(resultGroupArray, function (group) { return group.header == name });
+    return filteredArray[0];
+}
+function displayNoResults()
+{
+    logQuery(0);
+    queryObj.selectedScope = "Everything";
+    queryObj.selectedFacets = [];
+    window.location.hash = setURLHash(queryObj.queryText, "Everything", null, 0, queryObj.selectedSuggestion);
+    jq18(".ka_NoResults").html("<h2>No results found for <b>&ldquo;" + queryObj.queryText + "&rdquo;</b></h2>");
+    jq18(".ka_NoResults").removeClass("ka_HiddenElement");
+}
+function displayErrorMsg() {
+    queryObj.selectedScope = "Everything";
+    queryObj.selectedFacets = [];
+    window.location.hash = setURLHash(queryObj.queryText, "Everything", null, 0, queryObj.selectedSuggestion);
+    jq18(".ka_NoResults").html("<h2>Search Results did not load successfully. Please try again.</h2>");
+    jq18(".ka_NoResults").removeClass("ka_HiddenElement");
+}
+
+// LOGGING
+function clickedResultDetails(resultType, resultSubType, resultID, title, imageUrl) {
+    this.ResultType = resultType;
+    this.ResultSubType = resultSubType;
+    this.ResultId = resultID;
+    this.DisplayName = title;
+    this.DisplayImageUrl = imageUrl;
+}
+function logQuery(hitCount) {
+    
+    var searchLogDuration = 0;
+    if (searchLogTimerStart)
+        searchLogDuration = Date.now() - searchLogTimerStart;
+
+    newRelicMetrics["Total Search Duration"] = searchLogDuration;
+    logToConsole(newRelicMetrics);
+
+    if (typeof newrelic !== 'undefined')
+        newrelic.addPageAction('Search Timing', newRelicMetrics);
+
+    var lqData = {
+        "Query": queryObj.queryText,
+        "Scope": queryObj.selectedScope,
+        "Refinements": queryObj.selectedFacets,
+        "CurrentPageIndex": queryObj.currentPageIndex,
+        "ResultCount": hitCount,
+        "BrowserBack": isBrowserBack,
+        "SearchDuration": searchLogDuration,
+        "ReferringUrl": referringUrl,
+        "IsSuggestion": queryObj.selectedSuggestion,
+        "MatchingEntityTypes": getMatchingEntitiesFromCurrentPageResults()
+    };
+
+    logToConsole(JSON.stringify(lqData));
+
+    if (isAdminPage)
+        return false;
+
+    var url = "/_layouts/15/NexusAPIProxy/LogQuery.ashx";
+    var logQueryRequest = jq18.ajax({
+        url: url,
+        type: "POST",
+        data: JSON.stringify(lqData),
+        contentType: "application/json; charset=utf-8"
+        //dataType: "json"
+    })
+        .done(function (data) {
+            //logToConsole(data);
+        })
+        .fail(function (jqXHR, textStatus) {
+            if (textStatus != 'abort') {
+                logToConsole("logQuery Error: " + textStatus);
+            }
+        })
+        .always(function () {
+            isBrowserBack = false;
+            searchLogTimerStart = null;
+            searchLogDuration = 0;
+
+            // re-set referringUrl once logged
+            referringUrl = window.location.href;
+        });
+
+    delete lqData.SearchDuration;
+}
+function logClick(clickType, resultUrl, resultDetails, isBestBet) {
+
+    var lcData = {
+        "Query": queryObj.queryText,
+        "Scope": queryObj.selectedScope,
+        "Refinements": queryObj.selectedFacets,
+        "CurrentPageIndex": queryObj.currentPageIndex,
+        "ResultUrl": resultUrl,
+        "ResultDetails": resultDetails,
+        "IsBestBet": isBestBet
+    };
+    //alert(JSON.stringify(lcData));
+
+    if (isAdminPage)
+        return false;
+
+    var url = "/_layouts/15/NexusAPIProxy/LogClick.ashx";
+    var logClickRequest = jq18.ajax({
+        url: url,
+        type: "POST",
+        data: JSON.stringify(lcData),
+        contentType: "application/json; charset=utf-8",
+        async: false // needed for Safari and Firefox
+        //dataType: "json"
+    })
+      .fail(function (jqXHR, textStatus) {
+            if (textStatus != 'abort') {
+                logToConsole("logClick Error: " + textStatus);
+            }
+      })
+      /*.always(function () {
+          if (clickType == "Link")
+              window.location = resultUrl;
+      })*/
+    ;
+}
+function addClickLoggingToGroup(clickType, selector)
+{
+    jq18(selector).click(function (event) {
+
+        var resultType = "";
+        var resultSubType = "";
+        var resultID = "";
+        var resultTitle = "";
+        var resultImage = "";
+
+        var clickedTag = jq18(this);
+        var itemDiv = clickedTag.closest("div[class='ka_SearchResultItem']");
+        var resultIdAttr = itemDiv.attr('resultid');
+        var clickLogIdAttr = clickedTag.attr('clicklogid');
+
+        if (clickLogIdAttr.indexOf('||') > -1) {
+            var splitResultID = clickLogIdAttr.split('||');
+            resultID = splitResultID[1];
+
+            if (splitResultID[0].indexOf('|') > -1) {
+                splitResultType = splitResultID[0].split('|');
+                resultType = splitResultType[0];
+                resultSubType = splitResultType[1];
+            }
+            else
+                resultType = splitResultID[0];
+        }
+
+        var resultTitle = "";
+
+        if (clickLogIdAttr == resultIdAttr) {
+            if (resultType == "StreamItem")
+                resultTitle = itemDiv.find('.ka_streamItemTitle').text();
+            else if (clickType == "Image") {
+                resultTitle = itemDiv.find('h2').text();
+                if (!resultTitle)
+                    resultTitle = itemDiv.find('.lblImgInfo > span').text();
+            }
+            else
+                resultTitle = itemDiv.find('h2').text();
+        }
+        else {
+            if (resultType == "SharepointList") {
+                var commName = clickedTag.parent().children(':first-child').text();
+                resultTitle = commName + " > " + clickedTag.text();
+            }
+            else
+                resultTitle = clickedTag.text();
+        }
+
+        var resultImageUrl = "";
+
+        if (clickLogIdAttr == resultIdAttr) {
+            if (clickType == "Image")
+                resultImageUrl = clickedTag.attr('src');
+            else if (resultType == "Video")
+                resultImageUrl = itemDiv.find('img').attr('src');
+            else
+                resultImageUrl = itemDiv.find('.ka_SearchResultProfileImage').attr('src');
+        }
+        
+        var resultDetails = new clickedResultDetails(resultType, resultSubType, resultID, resultTitle, resultImageUrl);
+
+        var resultUrl = "";
+        if (clickType == "Image")
+            resultUrl = clickedTag.attr('src');
+        else if (resultType == "Video") {
+            resultUrl = clickedTag.attr('href');
+            if (resultUrl.indexOf('javascript') > -1) {
+                resultUrl = itemDiv.find('a.ka_SubItemVideo').attr('href');
+            }
+        }
+        else
+            resultUrl = clickedTag.attr('href');
+
+        var isBestBet = false;
+        if (itemDiv.parent("#ka_SearchResultGroup_BestBets").length > 0)
+            isBestBet = true;
+
+        var logUrl = makeConsistentUrl(resultUrl, resultType, resultSubType);
+
+        logClick(clickType, logUrl, resultDetails, isBestBet);
+
+        /* debug 
+        console.log('Before and after: ' + resultUrl + ' > ' + logUrl);  */
+
+    });
+}
+function makeConsistentUrl(resultUrl, resultType, resultSubType) {
+
+    if (resultUrl == null)
+        return "";
+
+    // absolute URL for these patterns
+    if (resultUrl.indexOf('mailto:') === 0 || resultUrl.indexOf('file:') === 0) return resultUrl;
+
+    var workingUrl = document.createElement('a');
+    workingUrl.href = resultUrl;
+
+    /* debug
+    console.log('resultUrl = ' + resultUrl);
+    console.log('resultType = ' + resultType);
+    console.log('workingUrl = ' + workingUrl.host + ' | ' + workingUrl.pathname + ' | ' + workingUrl.search);
+    console.log('window.location.host = ' + window.location.host) */
+
+    // absolute URL for these types
+    if (resultType == 'Link' || resultType == 'NavLink' || resultType == 'ExternalLink' || resultType == 'SharepointNavItem') return resultUrl;
+    if (resultType == 'Video' && resultSubType != "SharepointListItem") return resultUrl;
+
+    // else make relative url (but first make sure it begins with a slash)
+    var path = workingUrl.pathname;
+    if (path.indexOf('/') != 0) {
+        path = "/" + path;
+    } 
+    return path + workingUrl.search;
+
+}
+function logPostAnalytics() {
+    // kasa post analytics
+    jq18(".ka_SearchResultItem").each(function (index) {
+
+        var pageTitle = ''
+        try {
+            pageTitle = document.getElementsByTagName("title")[0].innerHTML.replace(/(\r\n|\n|\r|\t)/gm, "")
+        }
+        catch (e) {
+            console.log(e)
+        }
+
+        var referrer = document.createElement('a');
+        referrer.href = document.referrer;
+        referrer.pathname = referrer.pathname.toLowerCase();
+        if (referrer.pathname.length > 0) {
+            if (referrer.pathname.indexOf('/') != 0) {
+                referrer.pathname = "/" + referrer.pathname;
+            }
+            if (referrer.pathname.indexOf("/", referrer.pathname.length - 1) !== -1) {
+                referrer.pathname = referrer.pathname.substring(0, referrer.pathname.length - 1)
+            }
+        }
+        // mini-pyramid of doom
+        if (window.location.pathname.toLowerCase().indexOf('search/results.aspx') > -1) {
+            var resultid = jq18(this).attr('resultid')
+            if (resultid != 'undefined') {
+                if (resultid.toLowerCase().indexOf('streamitem') > -1) {
+                    if (resultid.toLowerCase().split('||').length == 2) {
+                        var itemID = resultid.toLowerCase().split('||')[1]
+                        var kasAnalytics = {
+                            Client: clientID.toLowerCase(), // from KAMasterPage global var
+                            Timestamp: "",
+                            User: employeeID, // from KAMasterPage global var
+                            CurrentEmployee: (typeof currentEmployee !== 'undefined') ? currentEmployee : null, // from KAMasterPage global var
+                            EventType: "Impression",
+                            Channel: "Web",
+                            Source: "SearchResults",
+                            Post: {
+                                ItemID: itemID,
+                                Promoted: 0 // assume false; doesn't impact display in search in any case
+                            },
+                            Location: {
+                                Url: window.location.href,
+                                Title: pageTitle,
+                                RelativeUrl: (window.location.pathname + window.location.hash).toLowerCase(),
+                                Community: (typeof communityID !== 'undefined') ? communityID : null,
+                                EntityType: "SearchResults",
+                                EntityID: ""
+                            },
+                            Referrer: {
+                                Url: document.referrer,
+                                RelativeUrl: referrer.pathname + referrer.search.toLowerCase(),
+                            },
+                            UserAgent: {
+                                CurrentTime: Date.now(),
+                                TimeZone: new Date().getTimezoneOffset(),
+                                ScreenResolution: screen.width + 'x' + screen.height,
+                                WindowSize: jq18(window).width() + 'x' + jq18(window).height(),
+                                UaHeader: window.navigator.userAgent,
+                                Version: '15'
+                            }
+                        };
+
+                        kasEvent = {
+                            Client: kasAnalytics.Client,
+                            User: kasAnalytics.User,
+                            EventType: "Impression",
+                            Channel: "Web",
+                            Source: "SearchResults",
+                            Location: window.location.href,
+                            EventData: kasAnalytics
+                        }
+                        // console.log(JSON.stringify(kasAnalytics))
+                        var api = "https://kasa.knowledge-architecture.com/api/spa?code=FLof2z/4dZ7srUY7/mDJsfjmMcwm32jERVCU9b1ChxlzcrV4MR1hHA==";
+                        var dispatch = jq18.ajax({
+                            url: api,
+                            type: "POST",
+                            data: JSON.stringify(kasEvent),
+                            contentType: "application/json; charset=utf-8",
+                            async: true
+                        });
+                        // console.log(JSON.stringify(dispatch))
+                    }
+                }
+            }
+        }
+
+    });
+}
+function ajaxRequestFailed(request, textStatus)
+{
+    stopAllSearches();
+    if (textStatus != 'abort') {
+        logToConsole(request + " Error: " + textStatus);
+    }
+    everythingResults = [];
+    currentPageResults = [];
+    jq18("img.loading").addClass("ka_HiddenElement");
+    isBrowserBack = false;
+    displayErrorMsg();
+    jq18(".ka_SearchResults").empty();
+    jq18("#ka_SearchScopesPanel").empty();
+}
+function logToConsole() {
+    if (isAdminPage && window.console) {
+        if (Function.prototype.bind) log = Function.prototype.bind.call(console.log, console); else log = function () { Function.prototype.apply.call(console.log, console, arguments); }; log.apply(this, arguments);
+    }
+}
+function getMatchingEntitiesFromCurrentPageResults()
+{
+    var matchingEntitiesForLogging = [];
+
+    if (currentPageResults.length > 0) {
+        jq18.each(currentPageResults, function (i, resultGroup) {
+            if (resultGroup.header == "Projects" || resultGroup.header == "Employees" || resultGroup.header == "Contacts" || resultGroup.header == "Companies" || resultGroup.header == "Opportunities" || resultGroup.header == "Best Bet" || resultGroup.header == "Best Bets") {
+                if (resultGroup.currentPageResults.length > 0) {
+                    jq18.each(resultGroup.currentPageResults, function (k, result) {
+                        switch (result.elasticEntityType) {
+                            case "Project":
+                                matchingEntitiesForLogging.push({ "EntityType": "Project", "EntityID": result.projectID, "EntityName": result.marketingName, "ProjectNumber": result.projectNumber, "Score": result.score });
+                                break;
+                            case "Employee":
+                                matchingEntitiesForLogging.push({ "EntityType": "Employee", "EntityID": result.employeeID, "EntityName": result.fullName, "EmployeeNumber": result.employeeNumber, "Score": result.score });
+                                break;
+                            case "Contact":
+                                matchingEntitiesForLogging.push({ "EntityType": "Contact", "EntityID": result.contactID, "EntityName": result.fullName, "Score": result.score });
+                                break;
+                            case "Company":
+                                matchingEntitiesForLogging.push({ "EntityType": "Company", "EntityID": result.companyID, "EntityName": result.companyName, "Score": result.score });
+                                break;
+                            case "Opportunity":
+                                matchingEntitiesForLogging.push({ "EntityType": "Opportunity", "EntityID": result.opportunityID, "EntityName": result.opportunityName, "Score": result.score });
+                                break;
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    var matchingEntities = null;
+    if (matchingEntitiesForLogging.length > 0)
+        matchingEntities = JSON.stringify({ "Matched Entity Count": matchingEntitiesForLogging.length, "Matched Entities": matchingEntitiesForLogging });
+
+    return matchingEntities;
+}
+
+// PRECACHE NAV LINKS
+function cacheNavLinks() {
+    var url = "/_layouts/15/NexusAPIProxy/SPNavSearch.ashx?cacheNodes=true";
+    var cacheNavLinksRequest = jq18.ajax({
+        url: url       
+    })
+        .done(function (data) {
+            logToConsole(data);
+        })
+        .fail(function (jqXHR, textStatus) {
+            if (textStatus != 'abort') {
+                logToConsole("cacheNavLinks Error: " + textStatus);
+            }
+        });
+}
+
+// PRECACHE IMAGES
+function preloadImages(array) {
+    logToConsole("About to pre-load " + array.length + " images.");
+    if (!preloadImages.list) {
+        preloadImages.list = [];
+    }
+    var list = preloadImages.list;
+    for (var i = 0; i < array.length; i++) {
+        var img = new Image();
+        img.onload = function() {
+            var index = list.indexOf(this);
+            if (index !== -1) {
+                // remove image from the array once it's loaded
+                // for memory consumption reasons
+                list.splice(index, 1);
+            }
+        }
+        list.push(img);
+        img.src = array[i];
+    }
+}
+
+
+// BACK/FORWARD BROWSER BUTTON AND KEYPRESS HANDLING
+if (window.location.href.toLowerCase().indexOf("/_layouts/15/search/results.aspx") > -1 ||
+    window.location.href.toLowerCase().indexOf("searchoptimization") > -1 ||
+    window.location.href.toLowerCase().indexOf("search%20optimization") > -1) {
+    jq18(document)
+        .keydown(function (e) {
+            if ((e.which == 8 || (e.which == 37 && e.altKey) || (e.which == 39 && e.altKey)) && !window.inSearchBox) {
+                window.browserNavKeyPress = true;
+                //logToConsole("Browser Nav key pressed.");
+            }
+            else
+                window.browserNavKeyPress = false;
+        });
+    jq18('body')
+        .mouseover(function () {
+            window.innerDocClick = true;
+            //logToConsole("User's mouse is inside the page.");
+        })
+       .mouseleave(function () {
+           window.innerDocClick = false;
+           window.browserNavKeyPress = false;
+           //logToConsole("User's mouse has left the page.");
+       });
+    window.onhashchange = function () {
+        logToConsole("Now in window.onhashchange");
+        logToConsole("window.innerDocClick = " + window.innerDocClick);
+        if (!window.innerDocClick || window.browserNavKeyPress) {
+            // If the url hash has changed and it's not due to an action within the page, then it's most likely the back/forward browser buttons or someone manually editing the hash, so re-do the search
+            logToConsole("window.location.hash is " + window.location.hash);
+
+            getQueryObjFromURLParameters();
+            
+            if (queryObj.queryText != "") {
+                jq18(".quickSearchTextBox").val(queryObj.queryText);
+                isBrowserBack = true;
+                initSearch();
+            }
+
+            window.browserNavKeyPress = false;
+        }
+    }
+}
+
+
+
+
+var tokenUtils = {
+    getToken: function(searchRequest, callbackFunction) {
+        var token = this.getStoredToken();
+        if (token) {
+            if (token === 'null' || !this.isTokenRecent(token) || !this.isTokenForCurrentUser(token))
+                localStorage.removeItem('apiToken');
+            else {
+                logToConsole("Token is good!");
+                if (callbackFunction)
+                    callbackFunction(searchRequest, token); // then run the search
+                return;
+            }
+        }
+        
+        jq18.get('/_layouts/15/NexusAPIProxy/GetToken.ashx')
+            .done(function (res) {
+                if (callbackFunction) {
+                    callbackFunction(searchRequest, res.results[0]);
+                    localStorage.setItem('apiToken', res.results[0]);
+                }
+            })
+            .fail(function (jqXHR, textStatus) {
+                ajaxRequestFailed("getToken", textStatus);
+            });
+    },
+    getStoredToken: function() {
+        return localStorage.getItem('apiToken');
+    },
+    isTokenRecent: function(token) {
+        var exp = JSON.parse(atob(token.split('.')[1])).exp;
+        var now = ~~(Date.now() / 1000);
+        var inTwoMin = now + 120;
+        if (exp <= inTwoMin) //if the token has already expired or will expire within 2 minutes
+        {
+            logToConsole("Token expired or expiring soon!");
+            return false;
+        }
+        return true;
+    },
+    isTokenForCurrentUser: function(token) {
+        var tokenObj = JSON.parse(atob(token.split('.')[1]))
+        if (tokenObj.EmployeeID.toUpperCase() === employeeID.toUpperCase() && tokenObj.KA_ClientID.toUpperCase() === clientID.toUpperCase())
+            return true;
+        else {
+            logToConsole("Not my token!");
+            return false;
+        }
+    }
+}
+
+
+// Media Result Modals
+function linkifyMediaResult(mediaResultSelector) {
+    jq18(mediaResultSelector).colorbox({
+        rel: mediaResultSelector,
+        loop: false,
+        width: 1070,
+        initialWidth: 1050,
+        height: 649,
+        initialHeight: 649,
+        title: false,
+        current: false,
+        className: 'ka_mediaModal',
+        html: "<img src='https://kamedia.knowledge-architecture.com/images/ajax_loader_32.gif' />",
+        onComplete: function () {
+            var mustacheTemplateName = "MediaResultModal.htm";
+
+            var mrData = getMediaResultData(jq18(this).attr('clicklogid'));
+            logToConsole(mrData);
+
+            if (resultTemplates[mustacheTemplateName]) {
+                document.getElementById('cboxLoadedContent').innerHTML = Mustache.render(resultTemplates[mustacheTemplateName], mrData);
+                renderPlayerInModal();
+            }
+            else {
+                jq18.get('/_Layouts/15/KA Search/mustache/' + mustacheTemplateName + '?r=' + Date.now(), function (template) {
+                    
+                    logToConsole("Fetched mustache template with name:" + mustacheTemplateName);
+                    resultTemplates[mustacheTemplateName] = template;
+
+                    document.getElementById('cboxLoadedContent').innerHTML = Mustache.render(template, mrData);
+                    renderPlayerInModal();
+                });                
+            }
+        }
+    });
+}
+
+function renderPlayerInModal() {
+    var video = document.querySelector('.mmUpper ka-video');
+    if (video)
+        renderKAVideo(video);
+    var gif = document.querySelector('.mmUpper img.ka_gif');
+    if (gif)
+        renderKAGif(gif);
+}
+
+function getMediaResultData(clickLogID)
+{
+    var resultGroup = getResultGroupFromArrayByName(currentPageResults, "Videos");
+
+    logToConsole(resultGroup.currentPageResults);
+
+    var videoResult = jq18.grep(resultGroup.currentPageResults, function (result) {
+        return result.identifier == clickLogID;
+    });
+
+    return videoResult[0];
+    
+}
+
+

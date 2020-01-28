@@ -1,0 +1,444 @@
+body {
+  font-family: 'Neue Helvetica eText W02', 'Arial', sans-serif;
+  font-weight: 200;
+  letter-spacing: -0.2px;
+  color: #555555;
+  font-size: 14px;
+}
+img.ka_circular,
+.ka_circular > img {
+  border-radius: 50%;
+}
+input[type=text]::-ms-clear {
+  display: none;
+}
+.help-comment {
+  color: #aaa;
+  padding-bottom: 8px;
+}
+.linkActive,
+a.linkActive,
+a.linkActive:link,
+a.linkActive:active,
+a.linkActive:visited,
+a.linkActive:hover {
+  color: #14baec;
+  cursor: pointer;
+}
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+input[type="file"]::-webkit-file-upload-button,
+button {
+  border-radius: 0;
+}
+.linkInactive {
+  cursor: pointer;
+}
+.KAEditor-root {
+  min-height: 23px;
+  border: 1px solid #d6d6d6;
+  background-color: #fff;
+  padding: 5px;
+  outline: none;
+  position: relative;
+}
+.KAEditor-x {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  cursor: pointer;
+  z-index: 1;
+}
+.KAEditor-editor {
+  cursor: text;
+}
+.KAEditor-hidePlaceholder .public-DraftEditorPlaceholder-root {
+  display: none;
+}
+.KAEditor-editor .public-DraftStyleDefault-pre {
+  background-color: rgba(0, 0, 0, 0.8);
+  font-family: 'Inconsolata', 'Menlo', 'Consolas', monospace;
+  font-size: 16px;
+  padding: 20px;
+}
+.public-DraftStyleDefault-orderedListItem:before {
+  line-height: 1.5em;
+}
+.KAEditor-controls {
+  display: inline-block;
+  user-select: none;
+  height: 24px;
+  text-align: justify;
+}
+.KAEditor-control {
+  position: relative;
+  vertical-align: middle;
+  display: inline-block;
+  zoom: 1;
+  cursor: pointer;
+  padding: 2px 5px;
+  height: 20px;
+  width: auto;
+}
+.KAEditor-control > img {
+  height: 100%;
+  width: auto;
+}
+/*.KAEditor-control-spreader {
+    width: 100%;
+    display: inline-block;
+    font-size: 0;
+    line-height: 0
+}*/
+/*.ka_shareTools {
+    padding: 2px;
+}*/
+.KAEditor-styleButton {
+  cursor: pointer;
+  display: inline-block;
+}
+.KAEditor-activeButton,
+.KAEditor-styleButton:not(.disabled):hover {
+  color: #14baec;
+}
+.KAEditor-styleButton.KAEditor-headerButton {
+  padding-right: 18px;
+  text-align: left;
+  background-image: url('https://kamedia3.knowledge-architecture.com/images/caret.svg');
+  background-repeat: no-repeat;
+  background-size: 12px 18px;
+  background-position: right center;
+  line-height: 20px;
+  white-space: nowrap;
+}
+.KAEditor-styleButton.KAEditor-headerButton:not(.disabled):hover {
+  background-image: url('https://kamedia3.knowledge-architecture.com/images/caret_cyan.svg');
+}
+.KAEditor-menuOptions {
+  border: 1px solid #d6d6d6;
+  z-index: 9999;
+  background-color: #ffffff;
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%) translateY(20px);
+}
+.KAEditor-menuOption {
+  padding: 0 20px;
+  white-space: nowrap;
+  text-align: left;
+  line-height: 50px;
+  cursor: pointer;
+}
+.KAEditor-menuOption:hover {
+  background-color: #f2f2f2;
+}
+.KAEditor-menuOptions > div.KAEditor-menuOption:not(:first-of-type) {
+  border-top: 1px solid #d6d6d6;
+}
+.KAEditor-menuOption > img {
+  vertical-align: text-top;
+  margin-right: 10px;
+  height: 20px;
+  width: auto;
+}
+.KAEditor-menuOption > span {
+  vertical-align: middle;
+}
+.KAEditor-menuOptions.inverted {
+  top: auto;
+  bottom: 100%;
+  transform: translateX(-50%) translateY(-20px);
+}
+.KAEditor-tri,
+.KAEditor-tri > div {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 15px 20px 15px;
+  position: absolute;
+}
+.KAEditor-tri {
+  border-color: transparent transparent #d6d6d6 transparent;
+  top: -21px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.KAEditor-tri > div {
+  border-color: transparent transparent #ffffff transparent;
+  top: 1px;
+  left: -15px;
+}
+.KAEditor-menuOptions > .KAEditor-menuOption:first-child:hover ~ .KAEditor-tri > div,
+.ka_editCommentOptions > div > span:first-child:hover ~ .KAEditor-tri > div {
+  border-bottom-color: #f2f2f2;
+}
+.KAEditor-menuOptions.inverted > .KAEditor-tri,
+.KAEditor-menuOptions.inverted > .KAEditor-tri > div {
+  border-width: 20px 15px 0 15px;
+}
+.KAEditor-menuOptions.inverted > .KAEditor-tri {
+  border-color: #d6d6d6 transparent transparent transparent;
+  bottom: -21px;
+  top: auto;
+}
+.KAEditor-menuOptions.inverted > .KAEditor-tri > div {
+  border-color: #ffffff transparent transparent transparent;
+  top: -21px;
+}
+.KAEditor-menuOptions.inverted > .KAEditor-menuOption:hover + .KAEditor-tri > div,
+.ka_editCommentOptions.inverted > div > span:hover + .KAEditor-tri > div {
+  border-top-color: #f2f2f2;
+}
+.KAEditor-editor figure {
+  margin: 0;
+}
+span.ka_addTagsText {
+  margin-top: 6px;
+}
+input.ka_addTagPhrase {
+  margin-top: 5px;
+}
+.ka_likesBoxTitle {
+  font-size: 16px;
+  font-weight: 500;
+  color: #232323;
+  display: block;
+  margin-bottom: 5px;
+}
+.ka_streamPromotePicker .DayPicker--horizontal {
+  margin: auto;
+}
+.ka_streamPromotePicker .CalendarDay {
+  border: 1px solid #d3d3d3 !important;
+}
+.ka_streamPromotePicker .CalendarDay--hovered,
+.ka_streamPromotePicker .CalendarDay--selected-span.CalendarDay--hovered,
+.ka_streamPromotePicker .CalendarDay--selected-start.CalendarDay--hovered:not(.CalendarDay--selected-end) {
+  background: #e6f2fa;
+}
+.ka_streamPromotePicker .CalendarDay--selected-start,
+.ka_streamPromotePicker .CalendarDay--selected-span,
+.ka_streamPromotePicker .CalendarDay--selected-end,
+.ka_streamPromotePicker .CalendarDay--selected-end:active {
+  background: #00abeb;
+}
+.ka_streamPromotePicker .CalendarDay--blocked-out-of-range {
+  background-color: #ebebeb;
+}
+.ka_streamPromotePicker .CalendarDay--today {
+  font-weight: 500;
+}
+.ka_streamPromotePicker button.CalendarDay__button:hover {
+  background-color: transparent;
+  border-color: transparent;
+}
+.red,
+input[type=button].red {
+  color: #ff3333;
+}
+.slick-prev {
+  z-index: 1;
+}
+.ka_hiddenInput {
+  opacity: 0;
+  position: absolute;
+  right: 0px;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+.ka_treeNode {
+  padding: 2px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ka_treeNode:not(.inactive) {
+  cursor: pointer;
+}
+.ka_treeNode:not(.inactive):hover {
+  background-color: #f2f2f2;
+}
+.ka_treeControl {
+  height: 20px;
+  width: 20px;
+  display: inline-block;
+  text-align: center;
+  vertical-align: middle;
+}
+.ka_treeControl > img {
+  height: 20px;
+}
+.ka_treeIcon {
+  vertical-align: middle;
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+}
+.ka_treeNode > span {
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.ka_treeNode > span:first-of-type {
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100% - 40px);
+}
+div.ka_treeChildren {
+  padding-left: 20px;
+}
+.ka_button:not(.disabled):hover,
+input[type=button].ka_button:not(.disabled):hover,
+.ka_button:not(.disabled).hovered {
+  background-color: #d6d6d6;
+}
+.ka_button.disabled,
+input[type=button].ka_button.disabled {
+  border-color: #aaaaaa;
+  color: #aaaaaa;
+  cursor: default;
+}
+.ka_outageBannerContainer {
+  position: relative;
+  width: 0px;
+  left: 525px;
+}
+.ka_outageBanner {
+  position: absolute;
+  background-color: #ff4947;
+  min-width: 648px;
+  height: 40px;
+  text-align: center;
+  padding-top: 20px;
+  bottom: -71px;
+  z-index: 2;
+  color: white;
+  padding-left: 30px;
+  padding-right: 30px;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+.ka_outageBanner > img {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 8px;
+  cursor: pointer;
+}
+.ka_outageBanner > span {
+  position: absolute;
+  top: -5px;
+  right: 0;
+  padding: 8px;
+  cursor: pointer;
+  transform: scale(1, 0.75);
+  font-size: 16px;
+}
+.ka_imgUploadProgress {
+  position: absolute;
+  bottom: -8px;
+  height: 3px;
+  width: 100%;
+}
+.ka_imgUploadProgress > div {
+  height: 100%;
+  background-color: #14baec;
+}
+/*
+Drop Down - LEVEL ONE
+*/
+ul.dropdown {
+  padding: 0;
+  margin: 0;
+  display: inline-block;
+  position: relative;
+}
+ul.dropdown {
+  border: 1px solid transparent;
+  border-width: 1px 1px 0;
+}
+ul.dropdown.open {
+  border: 1px solid #d6d6d6;
+  border-width: 1px 1px 0;
+}
+ul.dropdown li {
+  display: block;
+  outline: none;
+  list-style: none;
+  position: relative;
+}
+ul.dropdown li img {
+  border: 0;
+}
+ul.dropdown a:link,
+ul.dropdown a:hover,
+ul.dropdown a:active,
+ul.dropdown a:visited {
+  outline: 0;
+  padding: 0 8px;
+  display: block;
+  text-align: left;
+}
+/* 
+Drop Down - LEVEL TWO
+*/
+ul.dropdown ul {
+  padding: 0;
+  visibility: hidden;
+  position: absolute;
+  top: 100%;
+  left: -1px;
+  z-index: 99;
+  white-space: nowrap;
+  background-color: #FFF;
+}
+ul.dropdown > li > ul {
+  border: 1px solid #d6d6d6;
+  border-width: 0 1px 1px;
+}
+.ka_streamActions > li > ul {
+  padding-top: 3px;
+}
+tr.updatesRow.Promoted ul.dropdown ul {
+  background-color: #f2f2f2;
+}
+/*promoted background is grey*/
+ul.dropdown ul li {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  /*background: #F3F3F3; border-bottom: 1px solid #ccc;*/
+}
+ul.dropdown ul li a:link,
+ul.dropdown ul li a:hover,
+ul.dropdown ul li a:active,
+ul.dropdown ul li a:visited {
+  /* width: 100%; */
+  height: 100%;
+  display: inline-block;
+  padding: 4px 8px;
+  outline: 0;
+  line-height: normal;
+  text-align: left;
+}
+/* IE 6 & 7 Needs Inline Block */
+/*ul.dropdown ul li a:hover           { background:#F9F9F9; }*/
+ul.dropdown li,
+ul.dropdown ul li {
+  text-align: left;
+  /* padding-left: 10px; */
+}
+ul.dropdown li span,
+ul.dropdown ul li span {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+
+/*# sourceMappingURL=index.kaModules.css.map*/
