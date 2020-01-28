@@ -1,0 +1,96 @@
+/*
+This CSS resource incorporates links to font software which is the valuable copyrighted
+property of Monotype Imaging and/or its suppliers. You may not attempt to copy, install,
+redistribute, convert, modify or reverse engineer this font software. Please contact Monotype
+Imaging with any questions regarding Web Fonts:  http://webfonts.fonts.com
+*/
+
+@import url("//fast.fonts.net/t/1.css?apiType=css&projectid=2f40f231-aa87-4fc3-9689-93ce6413659e");
+@font-face{
+font-family:"Neue Helvetica eText W02_n2";
+src:url("Fonts/w02/7e44a768-e2b1-4525-9ce2-3bdf2251567e.eot?#iefix") format("eot")
+}
+@font-face{
+font-family:"Neue Helvetica eText W02";
+src:url("Fonts/w02/7e44a768-e2b1-4525-9ce2-3bdf2251567e.eot?#iefix");
+src:url("Fonts/w02/7e44a768-e2b1-4525-9ce2-3bdf2251567e.eot?#iefix") format("eot"),url("Fonts/w02/78abe6d7-60ee-4a4c-b5f7-676fcff72e80.woff") format("woff"),url("Fonts/w02/303701d4-af3a-47bc-a704-22e366d2b3af.ttf") format("truetype"),url("Fonts/w02/da4e5d93-0c5b-4300-b52b-2ddb956f353a.svg#da4e5d93-0c5b-4300-b52b-2ddb956f353a") format("svg");
+font-weight: 200;
+font-style: normal;
+}
+@font-face{
+font-family:"Neue Helvetica eText W02_i2";
+src:url("Fonts/w02/b3e83640-058e-446f-a120-a8e9bb40a7ab.eot?#iefix") format("eot")
+}
+@font-face{
+font-family:"Neue Helvetica eText W02";
+src:url("Fonts/w02/b3e83640-058e-446f-a120-a8e9bb40a7ab.eot?#iefix");
+src:url("Fonts/w02/b3e83640-058e-446f-a120-a8e9bb40a7ab.eot?#iefix") format("eot"),url("Fonts/w02/060b5239-9fbf-4e43-a231-a995f94e53f3.woff") format("woff"),url("Fonts/w02/13ca9f66-2e3d-4324-a2a7-767608889f53.ttf") format("truetype"),url("Fonts/w02/1b76f6a7-b510-40af-bf52-9e81ebc1916e.svg#1b76f6a7-b510-40af-bf52-9e81ebc1916e") format("svg");
+font-weight: 200;
+font-style: italic;
+}
+@font-face{
+font-family:"Neue Helvetica eText W02_n4";
+src:url("Fonts/w02/e30c4534-e8af-416e-b7fb-c395323e8424.eot?#iefix") format("eot")
+}
+@font-face{
+font-family:"Neue Helvetica eText W02";
+src:url("Fonts/w02/e30c4534-e8af-416e-b7fb-c395323e8424.eot?#iefix");
+src:url("Fonts/w02/e30c4534-e8af-416e-b7fb-c395323e8424.eot?#iefix") format("eot"),url("Fonts/w02/541908c1-6856-4337-b6cb-f57a88784cbe.woff") format("woff"),url("Fonts/w02/354b6f86-00e3-4843-b8d0-9107b4ae0100.ttf") format("truetype"),url("Fonts/w02/2e170156-a84c-48cf-bc19-5c5c4db18b03.svg#2e170156-a84c-48cf-bc19-5c5c4db18b03") format("svg");
+font-weight: 400;
+font-style: normal;
+}
+@font-face{
+font-family:"Neue Helvetica eText W02_i4";
+src:url("Fonts/w02/ca06b225-d224-48c2-ab8c-a6eda074d756.eot?#iefix") format("eot")
+}
+@font-face{
+font-family:"Neue Helvetica eText W02";
+src:url("Fonts/w02/ca06b225-d224-48c2-ab8c-a6eda074d756.eot?#iefix");
+src:url("Fonts/w02/ca06b225-d224-48c2-ab8c-a6eda074d756.eot?#iefix") format("eot"),url("Fonts/w02/11ca5dc2-974e-4412-8869-4f48a57e5a59.woff") format("woff"),url("Fonts/w02/3369d7bb-e954-48d5-b70a-55a19aa2d32c.ttf") format("truetype"),url("Fonts/w02/0f30cb1b-0940-4b65-b27b-fa0428820449.svg#0f30cb1b-0940-4b65-b27b-fa0428820449") format("svg");
+font-weight: 400;
+font-style: italic;
+}
+@font-face{
+font-family:"Neue Helvetica eText W02_n5";
+src:url("Fonts/w02/de8ea7a9-5466-4dc7-b7ab-af0e574abc59.eot?#iefix") format("eot")
+}
+@font-face{
+font-family:"Neue Helvetica eText W02";
+src:url("Fonts/w02/de8ea7a9-5466-4dc7-b7ab-af0e574abc59.eot?#iefix");
+src:url("Fonts/w02/de8ea7a9-5466-4dc7-b7ab-af0e574abc59.eot?#iefix") format("eot"),url("Fonts/w02/b9737fe6-d319-40cb-86ee-6ba0882bd5c2.woff") format("woff"),url("Fonts/w02/2e97165a-0bc2-4d7b-932e-469416453152.ttf") format("truetype"),url("Fonts/w02/599c2c22-db49-4454-97d0-6bb81892c795.svg#599c2c22-db49-4454-97d0-6bb81892c795") format("svg");
+font-weight: 500;
+font-style: normal;
+}
+@font-face{
+font-family:"Neue Helvetica eText W02_i5";
+src:url("Fonts/w02/861b5892-faa9-4268-8cc3-3d1927e297c6.eot?#iefix") format("eot")
+}
+@font-face{
+font-family:"Neue Helvetica eText W02";
+src:url("Fonts/w02/861b5892-faa9-4268-8cc3-3d1927e297c6.eot?#iefix");
+src:url("Fonts/w02/861b5892-faa9-4268-8cc3-3d1927e297c6.eot?#iefix") format("eot"),url("Fonts/w02/aed0decd-decc-49ef-b689-15a2a8924cec.woff") format("woff"),url("Fonts/w02/0e0da09b-9ab2-4de2-a02d-36aebb44e793.ttf") format("truetype"),url("Fonts/w02/d616ded8-eea7-4da1-bcee-09a5820b69e1.svg#d616ded8-eea7-4da1-bcee-09a5820b69e1") format("svg");
+font-weight: 500;
+font-style: italic;
+}
+@font-face{
+font-family:"Neue Helvetica eText W02_n7";
+src:url("Fonts/w02/e1c22775-19f1-4788-907d-302e5782b5d3.eot?#iefix") format("eot")
+}
+@font-face{
+font-family:"Neue Helvetica eText W02";
+src:url("Fonts/w02/e1c22775-19f1-4788-907d-302e5782b5d3.eot?#iefix");
+src:url("Fonts/w02/e1c22775-19f1-4788-907d-302e5782b5d3.eot?#iefix") format("eot"),url("Fonts/w02/74e6e2e1-e281-4b18-8319-dd0e21f3dad3.woff") format("woff"),url("Fonts/w02/484e3cbf-aa5e-4e0f-b623-c94d37c19bdb.ttf") format("truetype"),url("Fonts/w02/0300804c-d9d8-4cb4-8c92-cbcd9b238244.svg#0300804c-d9d8-4cb4-8c92-cbcd9b238244") format("svg");
+font-weight: 700;
+font-style: normal;
+}
+@font-face{
+font-family:"Neue Helvetica eText W02_i7";
+src:url("Fonts/w02/235a0ae9-4f04-4fd4-86fc-3cc775987c08.eot?#iefix") format("eot")
+}
+@font-face{
+font-family:"Neue Helvetica eText W02";
+src:url("Fonts/w02/235a0ae9-4f04-4fd4-86fc-3cc775987c08.eot?#iefix");
+src:url("Fonts/w02/235a0ae9-4f04-4fd4-86fc-3cc775987c08.eot?#iefix") format("eot"),url("Fonts/w02/d98ec956-645f-499b-9998-2d5caaa81a11.woff") format("woff"),url("Fonts/w02/53780986-7da4-47c9-a21a-67cb76ac6e60.ttf") format("truetype"),url("Fonts/w02/15a19a26-46de-4d54-89be-b528d64c8240.svg#15a19a26-46de-4d54-89be-b528d64c8240") format("svg");
+font-weight: 700;
+font-style: italic;
+}

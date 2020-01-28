@@ -1,0 +1,2352 @@
+.kamodal-container {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: #fff;
+  outline: none;
+  max-height: 90%;
+  max-width: 90%;
+  cursor: default;
+  box-sizing: border-box;
+  z-index: 21;
+  overflow: hidden;
+  color: #555555;
+}
+.kamodal-title {
+  margin: 25px 25px 10px;
+}
+.kamodal-title > span {
+  color: #232323;
+  font-size: 22px;
+  font-weight: 500;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.kamodal-title > img {
+  margin-left: 10px;
+  vertical-align: middle;
+}
+.kamodal-content {
+  overflow-y: auto;
+  padding: 0 25px 25px;
+  box-sizing: border-box;
+}
+.kamodal-content.notitle {
+  padding-top: 25px;
+  height: 100%;
+}
+.kamodal-subtitle {
+  font-weight: 500;
+  font-size: 16px;
+  margin-top: 30px;
+}
+.kamodal-content:not(.notitle) > div:first-of-type.kamodal-subtitle {
+  margin-top: 20px;
+}
+.kamodal-block {
+  margin-top: 10px;
+}
+.kamodal-overlay {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 110;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.kamodal-overlay:not(.disabled) {
+  cursor: pointer;
+}
+.kamodal-close {
+  position: absolute;
+  z-index: 100;
+  top: 0;
+  right: 0;
+  cursor: pointer;
+  width: 13px;
+  height: 13px;
+  padding: 15px 15px 5px 5px;
+}
+.kamodal-arrow {
+  position: fixed;
+  z-index: 100;
+  top: 50%;
+  padding: 20px;
+}
+.kamodal-left {
+  position: fixed;
+  z-index: 100;
+  top: 50%;
+  padding: 20px;
+  left: 15px;
+  transform: translate(0, -50%) scaleX(-1);
+}
+.kamodal-right {
+  position: fixed;
+  z-index: 100;
+  top: 50%;
+  padding: 20px;
+  right: 15px;
+  transform: translate(0, -50%);
+}
+.kamodal-left:hover,
+.kamodal-right:hover {
+  background-color: #444444;
+}
+.kamodal-content input[type='button'] {
+  padding-left: 15px;
+  padding-right: 15px;
+  margin-top: 15px;
+  height: 33px;
+  margin-left: 10px;
+}
+.kamodal-content input[type='text'],
+.kamodal-content textarea {
+  padding: 7px 9px;
+  margin-bottom: 3px;
+}
+.kamodal_media {
+  max-width: 1070px;
+}
+.kamodal_media .kamodal-content {
+  padding: 50px 150px;
+}
+.kamodal_media .mmUpper {
+  text-align: center;
+}
+.kamodal_media .mmUpper img,
+.kamodal_media .mmUpper div {
+  max-width: 750px;
+  max-height: 450px;
+  vertical-align: middle;
+}
+.kamodal_media .mmLower {
+  text-align: left;
+  margin-top: 10px;
+  white-space: nowrap;
+}
+.kamodal_media .mmLower > a.mmButton {
+  border: 1px solid #555555;
+  display: inline-block;
+  padding: 5px 9px;
+  margin-right: 8px;
+  margin-top: 3px;
+  color: inherit;
+}
+.kamodal_media .mmLower > span.primaryText,
+.kamodal_media .mmLower > span.secondaryText {
+  display: block;
+  margin-bottom: 10px;
+}
+.kamodal_media .mmLower > span.primaryText a,
+.kamodal_media .mmLower > span.secondaryText a {
+  color: inherit;
+  white-space: nowrap;
+}
+.kamodal_media .mmLower > span.primaryText {
+  color: #232323;
+  font-size: 18px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.kamodal_media .mmLower > span.secondaryText {
+  font-size: 12px;
+}
+.ka_likesModal .ka_likesModalTitle {
+  font-size: 16px;
+  font-weight: 500;
+  color: #232323;
+  display: block;
+  margin-bottom: 5px;
+  width: 380px;
+}
+.kamodal-content .ka_button {
+  height: 30px;
+  line-height: 28px;
+}
+
+.kamodal-container {
+  overflow-y: auto;
+}
+
+.ka_gif_container {
+  display: inline-block;
+  position: relative;
+  outline: none;
+  box-shadow: 0px 0px 0px 1px #dcdee0;
+}
+.KAEditor-editor .ka_gif_container {
+  display: block;
+}
+.ka_gif_play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: none;
+}
+.ka_gif_container .ka_gif_play.paused,
+.ka_gif_container:hover .ka_gif_play.playing {
+  display: block;
+}
+.ka_gif_label {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  padding: 5px;
+  pointer-events: none;
+}
+.ka_gif_label,
+.react-contextmenu.gifMenu {
+  padding: 5px;
+  background: rgba(0, 0, 0, 0.63);
+  color: white;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.react-contextmenu.gifMenu {
+  border: 1px solid white;
+}
+.react-contextmenu-wrapper {
+  display: inline-block;
+}
+.ka_mediaModal .ka_gif_container img:first-of-type {
+  max-width: 750px;
+  max-height: 450px;
+  display: block;
+}
+.ka_gif_container .ka_streamImg {
+  min-width: 150px;
+  min-height: 110px;
+}
+.ka_subitem.gif .react-contextmenu-wrapper {
+  display: block;
+}
+
+.ka-tooltip {
+  max-width: 300px;
+  border: 1px solid #d6d6d6;
+  font-size: inherit;
+  line-height: 21px;
+  border-radius: 0px;
+  padding: 14px;
+  z-index: 1000;
+}
+.ka-tooltip.type-light {
+  color: #555555;
+  opacity: 1.0;
+}
+.ka-tooltip.place-top:before {
+  border-top: 8px solid #d6d6d6;
+  border-radius: 0;
+}
+.ka-tooltip.place-bottom:before {
+  border-bottom: 8px solid #d6d6d6;
+  border-radius: 0;
+}
+/* LINKS */
+.ka-tooltip a,
+.ka-tooltip a:active,
+.ka-tooltip a:visited {
+  border-bottom: 1px solid #bdbdbd;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit !important;
+  font-weight: inherit !important;
+  pointer-events: auto;
+}
+.ka-tooltip a:hover {
+  border-bottom-color: #232323;
+  text-decoration: none;
+}
+
+.ka_calloutMenu {
+  display: block;
+  position: absolute;
+  bottom: -25px;
+  left: 50%;
+  transform: translate(-50%, 100%);
+  cursor: pointer;
+  text-align: left;
+  color: #555555;
+  backface-visibility: hidden;
+}
+.ka_calloutMenu > div {
+  border: 1px solid #d6d6d6;
+  z-index: 2;
+  background-color: #ffffff;
+}
+.ka_calloutMenu > div > span {
+  display: block;
+  padding: 10px;
+  white-space: nowrap;
+}
+.ka_calloutMenu > div > span:not(:first-of-type) {
+  border-top: 1px solid #d6d6d6;
+}
+.ka_calloutMenu > div > span:hover {
+  background-color: #f2f2f2;
+}
+.ka_calloutMenu .tri,
+.ka_calloutMenu .tri > div {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 15px 20px 15px;
+  position: absolute;
+}
+.ka_calloutMenu .tri {
+  border-color: transparent transparent #d6d6d6 transparent;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.ka_calloutMenu .tri > div {
+  border-color: transparent transparent #ffffff transparent;
+  top: 1px;
+  left: -15px;
+}
+.ka_calloutMenu > div > span:first-child:hover ~ .tri > div {
+  border-bottom-color: #f2f2f2;
+}
+.ka_calloutMenu.inverted > .tri,
+.ka_calloutMenu.inverted > .tri > div {
+  border-width: 20px 15px 0 15px;
+}
+.ka_calloutMenu.inverted > .tri {
+  border-color: #d6d6d6 transparent transparent transparent;
+  bottom: -20px;
+  top: auto;
+}
+.ka_calloutMenu.inverted > .tri > div {
+  border-color: #ffffff transparent transparent transparent;
+  top: -21px;
+}
+.ka_calloutMenu.inverted > div > span:hover + .tri > div {
+  border-top-color: #f2f2f2;
+}
+
+/* a wrapper element that tracks the mouse vertically */
+.vjs-thumbnail-holder {
+  position: absolute;
+  overflow: hidden;
+  left: -10000px;
+  bottom: 1.3em;
+}
+
+/* the thumbnail image itself */
+.vjs-thumbnail {
+  position: absolute;
+  left: 0;
+  opacity: 0;
+  transition: opacity .2s ease;
+  -webkit-transition: opacity .2s ease;
+  -moz-transition: opacity .2s ease;
+  -mz-transition: opacity .2s ease;
+}
+
+/* fade in the thumbnail when hovering over the progress bar */
+/* .fake-active is needed for Android only. It's removed on touchend/touchecancel */
+.vjs-progress-control:hover .vjs-thumbnail,
+.vjs-progress-control.fake-active .vjs-thumbnail,
+.vjs-progress-control:active .vjs-thumbnail {
+  opacity: 1;
+}
+
+/* ... but hide the thumbnail when hovering directly over it */
+.vjs-progress-control:hover .vjs-thumbnail:hover,
+.vjs-progress-control:active .vjs-thumbnail:active {
+  opacity: 0;
+}
+
+#Ribbon\.EditingTools\.CPInsert\.Media\.Media-Large,
+#Ribbon\.WebPartInsert\.Media\.Media-Large,
+#KAVideoUploadButtonRTE-Large.ms-cui-disabled {
+  display: none;
+}
+.video-js {
+  font-family: 'Neue Helvetica eText W02', 'Arial', sans-serif;
+  font-weight: 200;
+  letter-spacing: -0.2px;
+  font-size: 14px;
+  outline: none;
+}
+.video-js.lowres .vjs-tech {
+  width: auto;
+  height: auto;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 100%;
+  max-height: 100%;
+}
+.vjs-text-track-display {
+  display: none;
+}
+.video-js.vjs-error .vjs-modal-dialog {
+  background: none;
+}
+.ka-videoError,
+.vjs-error .vjs-poster,
+.vjs-error .vjs-error-display::before,
+.vjs-error video {
+  display: none;
+}
+.vjs-error .ka-videoError {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  line-height: 1.5em;
+  font-weight: 400;
+}
+.vjs-error .vjs-error-display .vjs-modal-dialog-content {
+  padding: 0;
+  top: auto;
+  left: auto;
+  bottom: 10px;
+  right: 10px;
+  height: auto;
+  width: auto;
+  font-size: 14px;
+  font-weight: 400;
+}
+.ka-videoErrorTitle {
+  font-size: 22px;
+}
+.ka-videoErroBody {
+  margin-top: 25px;
+  text-align: center;
+  max-width: 375px;
+}
+.video-js {
+  box-shadow: 0 0 0 1px #dcdee0;
+}
+.KAEditor-editor .ka_subitem:hover .video-js {
+  box-shadow: 0 0 0 2px #14baec;
+}
+.ka_subitem.selected .video-js {
+  box-shadow: 0 0 0 3px #14baec;
+}
+.ka_subitem.selected .video-js::after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.5);
+  z-index: 1;
+}
+/* Remove Glow */
+.video-js .vjs-control:focus:before,
+.video-js .vjs-control:hover:before,
+.video-js .vjs-control:focus {
+  text-shadow: none;
+}
+/* POSTER */
+.video-js .ka-playOverlay {
+  opacity: 1;
+  transition: visibility 0.1s, opacity 0.1s;
+}
+.vjs-has-started.vjs-user-inactive.vjs-playing .ka-playOverlay {
+  opacity: 0;
+  transition: visibility 1s, opacity 1s;
+}
+.video-js.vjs-has-started .ka-overlayBG {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+.video-js .ka-title {
+  display: inline-block;
+  font-size: 16px;
+  line-height: 19px;
+  max-height: 38px;
+  font-weight: 400;
+  overflow: hidden;
+  flex: 1;
+}
+.video-js .ka-titleBar {
+  position: absolute;
+  top: 0;
+  z-index: 1;
+  width: 100%;
+  height: 98px;
+  padding: 10px 10px 20px;
+  background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAADGCAYAAAAT+OqFAAAAdklEQVQoz42QQQ7AIAgEF/T/D+kbq/RWAlnQyyazA4aoAB4FsBSA/bFjuF1EOL7VbrIrBuusmrt4ZZORfb6ehbWdnRHEIiITaEUKa5EJqUakRSaEYBJSCY2dEstQY7AuxahwXFrvZmWl2rh4JZ07z9dLtesfNj5q0FU3A5ObbwAAAABJRU5ErkJggg==);
+  background-repeat: repeat-x;
+  text-align: left;
+  display: flex;
+  align-items: flex-start;
+}
+.video-js.vjs-error .ka-titleBar {
+  display: none;
+}
+.video-js .ka-titleIcon {
+  visibility: hidden;
+  cursor: pointer;
+}
+.video-js.vjs-has-started:not(.vjs-fullscreen) .ka-titleIcon,
+.video-js:not(.vjs-fullscreen):not(.vjs-error):hover .ka-titleIcon,
+.video-js:not(.vjs-fullscreen):not(.vjs-error).hover .ka-titleIcon {
+  visibility: visible;
+}
+.video-js .ka-titleIcon > span {
+  font-family: 'VideoJS';
+  font-size: 20px;
+}
+.video-js .ka-cog {
+  position: relative;
+  margin-right: 10px;
+}
+.KAEditor-editor .ka-cog .ka_calloutMenu {
+  left: 6px;
+}
+.KAEditor-editor .ka-cog .ka_calloutMenu .tri {
+  left: 53%;
+}
+.video-js .vjs-big-play-button {
+  border-radius: 50%;
+  height: 65px;
+  width: 65px;
+  font-size: 50px;
+  line-height: 58px;
+  background-color: rgba(0, 0, 0, 0.7);
+}
+.vjs-big-play-centered .vjs-big-play-button {
+  margin-top: 0;
+  margin-left: 0;
+  transform: translate(-50%, -50%);
+}
+.video-js:hover .vjs-big-play-button,
+.video-js .vjs-big-play-button:focus {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+.video-js:not(.ka-video-mockPlayer):hover .vjs-big-play-button,
+.video-js:not(.ka-video-mockPlayer) .vjs-big-play-button:focus {
+  height: 80px;
+  width: 80px;
+  font-size: 65px;
+  line-height: 70px;
+}
+.video-js .ka-footerBar {
+  font-size: 16px;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 98px;
+  padding: 10px 10px 20px;
+  background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAADGCAYAAAAT+OqFAAAAdklEQVQoz42QQQ7AIAgEF/T/D+kbq/RWAlnQyyazA4aoAB4FsBSA/bFjuF1EOL7VbrIrBuusmrt4ZZORfb6ehbWdnRHEIiITaEUKa5EJqUakRSaEYBJSCY2dEstQY7AuxahwXFrvZmWl2rh4JZ07z9dLtesfNj5q0FU3A5ObbwAAAABJRU5ErkJggg==);
+  background-repeat: repeat-x;
+  background-position: bottom;
+}
+.video-js .ka-duration {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  font-weight: 400;
+}
+.video-js.vjs-has-started .ka-duration {
+  display: none;
+}
+.vjs-time-control {
+  font-weight: 400;
+}
+.kamodal-content .ka-little-input {
+  width: 65px;
+  text-align: center;
+  color: #aaaaaa;
+}
+.kamodal-content input[type='text'].ka-little-input,
+.kamodal-content textarea.ka-little-input {
+  padding-left: 0;
+  padding-right: 0;
+}
+.ka_questionCircle,
+a.ka_questionCircle:link,
+a.ka_questionCircle:visited,
+a.ka_questionCircle:active,
+a.ka_questionCircle:hover {
+  color: inherit;
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 50%;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  text-align: center;
+  text-decoration: none;
+}
+a.ka_questionCircle:hover {
+  background-color: #f2f2f2;
+}
+/* Playback Bar */
+.video-js .vjs-control-bar {
+  background-color: transparent;
+  z-index: 1;
+}
+/* .video-js .vjs-control-bar::before {
+    content: ' ';
+    display: block;
+    background: linear-gradient(transparent,rgba(0,0,0,.5));
+    position: absolute;
+    top: -30px;
+    bottom: 0px;
+    left: 0;
+    right: 0;
+} */
+.video-js .vjs-control {
+  width: 3em;
+}
+.video-js .vjs-control:focus,
+.video-js .vjs-slider:focus {
+  outline: none;
+  text-shadow: none;
+  box-shadow: none;
+}
+.video-js .vjs-mute-control {
+  padding-left: 0;
+  padding-right: 0;
+}
+.video-js .vjs-current-time,
+.video-js .vjs-time-divider,
+.video-js .vjs-duration {
+  display: block;
+}
+.video-js .vjs-remaining-time {
+  display: none;
+}
+.video-js .vjs-time-control {
+  width: auto;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+.video-js .vjs-volume-control {
+  margin-right: 10px;
+}
+.video-js .vjs-volume-panel.vjs-volume-panel-horizontal:hover,
+.video-js .vjs-volume-panel.vjs-volume-panel-horizontal:focus,
+.video-js .vjs-volume-panel.vjs-volume-panel-horizontal:active,
+.video-js .vjs-volume-panel.vjs-volume-panel-horizontal.vjs-slider-active {
+  width: 130px;
+}
+.video-js .vjs-current-time {
+  padding-right: 5px;
+}
+.video-js .vjs-duration {
+  padding-left: 5px;
+}
+.video-js .vjs-time-divider {
+  padding: 0;
+  min-width: 0;
+}
+.video-js .vjs-time-divider > div > span {
+  display: none;
+}
+.video-js .vjs-time-divider > div:before {
+  content: '|';
+}
+.video-js .vjs-progress-control {
+  width: 100%;
+  display: block;
+  position: absolute;
+  top: -10px;
+  left: 0;
+  height: 15px;
+  padding-top: 5px;
+}
+.video-js .vjs-progress-holder {
+  height: 0.2em;
+}
+.video-js .vjs-play-progress:before {
+  font-size: 8px;
+  top: -0.25em;
+}
+.video-js .vjs-progress-control:hover .vjs-play-progress:before {
+  font-size: 12px;
+}
+.video-js .vjs-slider,
+.video-js .vjs-progress-holder .vjs-load-progress {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+.video-js .vjs-load-progress div {
+  background-color: rgba(255, 255, 255, 0.01);
+}
+.video-js .vjs-progress-control:hover .vjs-play-progress > .vjs-time-tooltip,
+.video-js .vjs-progress-control:hover .vjs-progress-holder:focus .vjs-time-tooltip,
+.video-js .vjs-progress-control:hover .vjs-time-tooltip {
+  display: none;
+}
+/* Control Buttons */
+.vjs-button > .vjs-icon-placeholder:before {
+  font-size: 25.2px;
+}
+.vjs-audio-button,
+.vjs-subs-caps-button {
+  display: none;
+}
+.video-js .ka-share .vjs-icon-placeholder {
+  font-family: VideoJS;
+  font-weight: normal;
+  font-style: normal;
+}
+.video-js .ka-share .vjs-icon-placeholder:before {
+  content: "\F10F";
+  font-size: 1.5em;
+  line-height: 2;
+}
+.video-js .vjs-fullscreen-control {
+  margin-left: auto;
+}
+/* VIDEO-MODAL */
+.ka-video-modal-overlay {
+  background-color: rgba(0, 0, 0, 0.25);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+.ka-video-modal {
+  background-color: white;
+  /* position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%); */
+  color: #555555;
+  width: 90%;
+  max-height: 100%;
+  overflow: auto;
+}
+.ka-video-modal-title {
+  margin-top: 20px;
+  margin-right: 20px;
+  margin-bottom: 15px;
+  margin-left: 20px;
+  color: #232323;
+  font-size: 22px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.ka-video-modal-content {
+  margin: 0 20px;
+  line-height: 1.5em;
+  padding-top: 5px;
+}
+.ka-video-modal-content .ka_button {
+  margin-top: 20px;
+  margin-left: 10px;
+  height: 30px;
+  line-height: 28px;
+}
+/* Title Editor */
+.videoTitleInput {
+  display: block;
+  padding: 12px 5px;
+  box-sizing: border-box;
+  width: 100%;
+  font-weight: 700;
+  color: #232323;
+  border: 1px solid #bdbdbd;
+}
+/* Mock Player */
+.ka-video-mockPlayer {
+  position: relative;
+  overflow: hidden;
+}
+.ka-video-mockPlayer > img.poster {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  position: relative;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+.ka-video-mockPlayer .ka-titleBar {
+  top: 0;
+  left: 0;
+}
+.ka-video-mockPlayer .vjs-big-play-button {
+  outline: none;
+}
+/* Scrubber Thumbnails */
+.ka-thumbnail-holderInner {
+  padding: 3px;
+  background-color: rgba(0, 0, 0, 0.5);
+  box-sizing: content-box;
+  width: 200px;
+}
+.vjs-thumbnail {
+  pointer-events: none;
+  margin-top: 3px;
+  margin-left: 3px;
+}
+.ka-video-scrubTime {
+  position: absolute;
+  bottom: 2px;
+  width: 100%;
+}
+.video-js .vjs-time-tooltip,
+.video-js .vjs-progress-control:hover .vjs-time-tooltip {
+  display: none;
+}
+/* EDIT THUMBNAIL DIALOG */
+.kavideo-editThumbCategory {
+  display: inline-block;
+  padding-top: 5px;
+  height: 25px;
+  cursor: pointer;
+  width: 186px;
+}
+.kavideo-editThumbCategory:hover,
+.kavideo-editThumbCategory.active {
+  color: #14baec;
+}
+.kavideo-editThumbCategory > img {
+  vertical-align: middle;
+  padding-right: 5px;
+}
+.kavideo-editThumbCategory > img.hover,
+.kavideo-editThumbCategory:hover > img.unhover,
+.kavideo-editThumbCategory.active > img.unhover {
+  display: none;
+}
+.kavideo-editThumbCategory > img.unhover,
+.kavideo-editThumbCategory:hover > img.hover,
+.kavideo-editThumbCategory.active > img.hover {
+  display: inline;
+}
+.kavideo-stillsContainer {
+  height: 305px;
+  width: 574px;
+  position: relative;
+}
+/* @media only screen and (max-height: 1027px) {
+    .kavideo-stillsContainer {
+        height: 234px;
+    }
+}
+@media only screen and (max-height: 948px) {
+    .kavideo-stillsContainer {
+        height: 163px;
+    }
+}
+@media only screen and (max-height: 869px) {
+    .kavideo-stillsContainer {
+        height: 92px;
+    }
+} */
+.kavideo-stillsContainer div.still {
+  display: inline-block;
+  width: 103px;
+  height: 58px;
+  padding: 10px 10px 0 0;
+  cursor: pointer;
+}
+.kavideo-stillsContainer div.still:nth-of-type(5) {
+  padding-right: 0;
+}
+.kavideo-stillsContainer div.still > div {
+  position: relative;
+  border: 1px solid #d6d6d6;
+  width: 100%;
+  height: 100%;
+}
+.kavideo-stillsContainer div.still > div::after {
+  content: '';
+  display: block;
+  height: 103%;
+  position: absolute;
+  top: -1px;
+  width: 101%;
+  background-color: rgba(255, 255, 255, 0.5);
+}
+.kavideo-stillsContainer div.still:hover > div::after,
+.kavideo-stillsContainer div.still.active > div::after {
+  background-color: transparent;
+}
+.kavideo-stillsContainer div.still.active > div {
+  border-color: transparent;
+}
+.kavideo-stillsContainer div.still.active > div::after {
+  box-shadow: inset 0 0 0px 3px #14baec;
+}
+.kavideo-stillsContainer div.still > div > img {
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.ss-container {
+  padding-right: 4px;
+  box-sizing: border-box;
+  font-size: 0;
+}
+.ss-wrapper {
+  border-right: 1px solid #555555;
+}
+.ss-content {
+  width: calc(100% + 54px);
+}
+.ss-scroll {
+  opacity: 1;
+  border: 1px solid #555555;
+  background: white;
+  border-radius: 6px;
+}
+.ss-scroll.ss-hidden {
+  height: 100% !important;
+  display: block;
+  position: absolute;
+  right: 0 !important;
+  border: 0;
+}
+/* Hang tight */
+.ka_hangTight {
+  background: #51A7F9;
+  color: white;
+  font-weight: 400;
+  position: relative;
+  max-width: 100%;
+}
+.ka_hangTight > div {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100%;
+}
+.ka_hangTight > div > div {
+  text-align: center;
+}
+/* Resize Handle */
+.ka-video-resizer:after {
+  content: '';
+  box-shadow: 0px 0px 0px 3px #14baec;
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.5);
+  z-index: 1;
+}
+.ka-video-resizer-handle {
+  z-index: 2;
+}
+.ka-video-resizer-handle:after {
+  content: '';
+  display: block;
+  margin: 6px;
+  border: 1px solid black;
+  background-color: white;
+  height: 7px;
+  width: 7px;
+}
+.ka-resizer-dimensionBox {
+  position: absolute;
+  bottom: -37px;
+  right: 3px;
+  border: 1px solid #555555;
+  background: white;
+  padding: 5px 7px;
+  z-index: 9999;
+}
+.video-js .postProcessingMessage,
+.video-js .commentProcessingMessage,
+.ka_shareBody .video-js .wikiProcessingMessage,
+.ka_newCommentWrapper .video-js .wikiProcessingMessage {
+  display: none;
+}
+.ka_shareBody .video-js .postProcessingMessage,
+.ka_newCommentWrapper .video-js .commentProcessingMessage {
+  display: inline-block;
+}
+.ka_vidTrancode_helpLink {
+  display: block;
+  margin-top: 25px;
+  margin-bottom: 23px;
+  text-align: right;
+}
+.ka_newCommentWrapper .ka_vidTrancode_helpLink {
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+.ka_vidTrancode_body {
+  display: block;
+  margin-top: 25px;
+}
+.ka_newCommentWrapper .ka_vidTrancode_body {
+  margin-top: 15px;
+}
+.ka_newCommentWrapper .ka-video-modal-content {
+  padding-top: 0;
+}
+.ka_newCommentWrapper .ka-video-modal-title {
+  margin-top: 15px;
+}
+
+/* when reszing in Chrome we have to enable the native controls so the browser doesn't crash. This hides them. */
+*::-webkit-media-controls-panel {
+	visibility: hidden;
+	pointer-events: none;
+}
+.ka_EventLocation {
+    width: 430px; /* THIS IS FIXED IN IE11 5.38 */
+}
+
+.ka_streamWebpageText > .ka_streamSubItemTitle {
+	display: table;
+	table-layout: fixed;
+	width: 100%;
+}
+.ka_stream {
+  width: 608px;
+  position: relative;
+}
+.updatesRow {
+  padding: 20px 15px;
+}
+.updatesRow.Promoted {
+  padding: 19px 14px;
+}
+.updatesRow:hover .ka_streamItemToggle {
+  visibility: visible;
+}
+.updatesRow.Promoted:not(:first-of-type) {
+  margin-top: 10px;
+}
+.ka_subject > a,
+.ka_subject > img {
+  vertical-align: middle;
+  display: inline-block;
+  margin-right: 10px;
+}
+.imgSubjectImage {
+  height: 50px;
+  width: 50px;
+  display: block;
+}
+.ka_streamDate,
+.ka_editCommentOptions {
+  float: right;
+}
+.ka_subject .ka_streamDate {
+  margin-top: 15px;
+}
+.divStreamBody {
+  word-wrap: break-word;
+  margin-bottom: 0;
+}
+.ka_streamItemContent {
+  -webkit-transition: max-height 0.75s;
+  transition: max-height 0.75s;
+  overflow: visible;
+}
+.ka_streamItemContent.less {
+  max-height: 3em;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.ka_streamItemContent.more {
+  max-height: none;
+}
+.ka_streamImg {
+  max-width: 578px;
+  display: block;
+}
+div.ka_streamSubBox {
+  width: auto;
+  background-color: #fafafa;
+  margin-top: 5px;
+  padding: 6px;
+}
+div.ka_streamSubBox.ka_streamComment {
+  padding: 12px;
+}
+div.ka_streamSubBox.ka_streamNewComment {
+  padding: 6px 6px 6px 12px;
+  position: relative;
+}
+.ka_newCommentWrapper {
+  border: 1px solid #d6d6d6;
+  background-color: #fff;
+  padding: 5px 5px 0 1px;
+  margin-left: 55px;
+}
+.ka_streamNewComment.closed .ka_newCommentWrapper {
+  padding-bottom: 2px;
+}
+.ka_newCommentWrapper .KAEditor-root {
+  border: 0;
+  margin-top: 5px;
+}
+.ka_newCommentWrapper .KAEditor-x {
+  top: -5px;
+  right: -1px;
+}
+.ka_streamNewComment.closed .KAEditor-root {
+  min-height: 15px;
+  overflow: hidden !important;
+  padding-bottom: 0;
+}
+.ka_streamNewComment.closed .DraftEditor-editorContainer {
+  height: 31px;
+}
+.ka_streamCommentContent {
+  margin-bottom: 0;
+  margin-top: 15px;
+}
+a.ka_streamItemTitle,
+span.ka_streamItemTitle {
+  margin-top: 6px;
+  margin-bottom: 9px;
+  margin-right: 0;
+  word-break: break-word;
+  word-wrap: break-word;
+  width: 100%;
+}
+span.ka_streamItemTitle:hover {
+  text-decoration: underline;
+}
+.ka_streamNewComment .ka_streamImg {
+  max-width: 542px;
+}
+.ka_streamComment .ka_streamImg {
+  max-width: 492px;
+  display: block;
+}
+.ka_streamImg.less,
+.ka_streamSliderPreview > img {
+  max-height: 225px;
+}
+.ka_streamComment .ka_streamImg.less {
+  max-height: 225px;
+}
+.ka_streamImg.more {
+  max-height: 800px;
+  height: auto;
+}
+.ka_streamSliderPreview {
+  position: relative;
+  display: inline-block;
+}
+.ka_streamSliderPreview > span {
+  position: absolute;
+  background-color: rgba(68, 68, 68, 0.68);
+  width: 100%;
+  bottom: 0;
+  text-align: center;
+  color: #fff;
+  padding: 5px 0;
+}
+div.ka_SubItemContainer {
+  clear: right;
+}
+/* .ka_streamItemContent + .ka_SubItemContainer,
+.ka_SubItemContainer + .ka_streamItemContent {
+	margin-top: 15px;
+}
+.leadingSubItem,
+.ka_streamItemTitle + .ka_SubItemContainer {
+    margin-top: 8px;
+} */
+.ka_streamItemContent div.ka_SubItemContainer:first-child {
+  margin-top: 0;
+}
+.ka_streamItemToggle {
+  float: right;
+}
+span.ka_streamItemTitle {
+  font-size: 20px;
+  font-weight: 500;
+  color: #232323;
+  display: inline-block;
+  cursor: pointer;
+}
+.ka_streamLikeCount span {
+  vertical-align: middle;
+}
+ul.dropdown.ka_streamViews,
+ul.dropdown.ka_streamViews ul {
+  min-width: 104px;
+}
+ul.dropdown.ka_streamViews li {
+  cursor: pointer;
+}
+ul.ka_streamActions,
+ul.ka_streamActions ul {
+  min-width: 123px;
+}
+.ka_removeIcon {
+  cursor: pointer;
+}
+.ka_removeComment,
+.ka_myComment:hover .ka_streamCommentDate {
+  display: none;
+}
+.ka_myComment:hover .ka_removeComment {
+  display: inline-block;
+}
+div.ka_tagSuggestionBox {
+  /*top: 100%;
+	left: -1px;
+	width: ~"calc(100% - 4px)";*/
+  position: absolute;
+  white-space: nowrap;
+}
+.ka_newItemCount_container {
+  text-align: center;
+  margin-left: 77px;
+  height: 0;
+  overflow: hidden;
+  transition: height 500ms;
+}
+.ka_newItemCount_container.slideDown {
+  height: 27px;
+}
+.ka_newItemCount {
+  display: inline-block;
+  border: 1px solid #14baec;
+  padding: 3px 15px;
+  color: #14baec;
+  font-weight: 400;
+  cursor: pointer;
+}
+.ka_newItemCount:hover {
+  color: #fff;
+  background-color: #14baec;
+}
+div.ka_tagSuggestionBox {
+  z-index: 9999;
+}
+.SubItemThumbnail > img,
+.ka_streamImg.less,
+div.ka_streamLessImg > img {
+  height: auto;
+  width: auto;
+}
+a.SubItemThumbnail img {
+  display: block;
+}
+.ka_stream h1 {
+  font-size: 18px;
+  color: #232323;
+  font-weight: 500;
+}
+.ka_stream h2 {
+  font-size: 16px;
+  color: #232323;
+  font-weight: 500;
+}
+.ka_stream blockquote {
+  margin-left: 45px;
+  margin-right: 45px;
+}
+.ka_streamNewComment .public-DraftStyleDefault-block,
+.ka_streamNewComment .public-DraftStyleDefault-orderedListItem:before {
+  line-height: 1.5em;
+}
+.ka_streamNewComment .KAEditor-editor.open .public-DraftEditor-content {
+  min-height: 7.5em;
+}
+.ka_commentFooter .KAEditor-controls {
+  margin-top: 7px;
+  display: flex;
+  flex-grow: 1;
+  justify-content: space-between;
+}
+.ka_streamWebpage {
+  border: 1px solid #d6d6d6;
+  display: block;
+  position: relative;
+}
+a.ka_streamWebpage:hover {
+  text-decoration: none;
+}
+.ka_streamWebpage > .ka_column {
+  display: table-cell;
+  vertical-align: top;
+}
+.ka_streamWebpageImg img {
+  width: auto;
+  height: auto;
+  display: block;
+}
+.ka_streamItemContent .ka_streamWebpageImg img,
+.ka_SubItemContainer .ka_streamWebpageImg img,
+.ka_shareBody .ka_streamWebpageImg img {
+  max-width: 225px;
+  max-height: 150px;
+}
+.ka_streamComment .ka_streamWebpageImg img,
+.ka_streamNewComment .ka_streamWebpageImg img {
+  max-width: 190px;
+  max-height: 127px;
+}
+/*.ka_streamWebpageImg > div {
+	display: inline-block;
+}*/
+.ka_streamWebpage .ka_streamWebpageImg {
+  border-right: 1px solid #d6d6d6;
+}
+.ka_streamWebpage .ka_streamWebpageText,
+.ka_streamWebpage .ka_streamWebpageImg.internal {
+  padding: 10px;
+}
+a.ka_streamWebpage .ka_steamSubItemBody {
+  color: #555555;
+  margin-top: 10px;
+  max-height: 4.5em;
+  /*text-overflow: ellipsis;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;*/
+  word-break: break-word;
+}
+a.ka_streamWebpage .ka_streamSubItemSubtitle {
+  color: #aaaaaa;
+  margin-top: 10px;
+}
+.ka_streamWebpage .ka_linkImgPager {
+  display: none;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  background: rgba(68, 68, 68, 0.68);
+  color: white;
+  font-size: 14px;
+  text-align: center;
+  white-space: nowrap;
+  z-index: 2;
+}
+.ka_linkImgPager img {
+  display: inline-block;
+  padding: 6px 10px;
+  vertical-align: middle;
+}
+.ka_streamWebpage:hover .ka_linkImgPager,
+.ka_streamWebpage.selected .ka_linkImgPager {
+  display: inline-block;
+}
+.ka_streamWebpageImg .queued {
+  display: none;
+}
+.KAEditor-editor .ka_streamImg {
+  display: block;
+  max-width: 100%;
+}
+.ka_subitem {
+  cursor: pointer;
+  position: relative;
+  display: block;
+  line-height: normal;
+}
+.KAEditor-editor .ka_subitem {
+  background-color: white;
+}
+.KAEditor-editor .ka_subitem.ka_imgBox {
+  display: inline-block;
+  max-width: 100%;
+}
+.video_wrapper {
+  width: 100%;
+  padding-bottom: 56.25%;
+  position: relative;
+}
+.video_wrapper > iframe {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: inherit;
+  height: 100%;
+}
+.KAEditor-editor .ka_subitem:hover,
+.KAEditor-editor .ka_subitem.selected {
+  border-color: transparent;
+}
+.KAEditor-editor .ka_subitem:after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+.KAEditor-editor .ka_subitem:hover:after {
+  box-shadow: 0px 0px 0px 1px #14baec;
+}
+/* .KAEditor-editor .ka_subitem.ka_vidBox { //videos shrink to avoid black lines so the cyan border needs to shrink too EDIT: border is now done in KAVideo
+	display: inline-block;
+} */
+.KAEditor-editor .ka_subitem.ka_imgBox.uploading:after,
+.KAEditor-editor .ka_subitem.ka_vidBox.uploading:after,
+.KAEditor-editor .ka_subitem.selected:after {
+  background: rgba(255, 255, 255, 0.5);
+  z-index: 1;
+}
+.KAEditor-editor .ka_subitem.selected:after {
+  box-shadow: 0px 0px 0px 2px #14baec;
+}
+.KAEditor-editor .ka_subitem.ka_imgBox.gif:not(.selected):after,
+.KAEditor-editor .ka_subitem.dragging:after,
+.KAEditor-editor .ka_subitem.selected.dragging:after {
+  display: none;
+}
+.KAEditor-editor .ka_subitem.ka_imgBox:hover:after {
+  box-shadow: 0px 0px 0px 2px #14baec;
+}
+.KAEditor-editor .ka_subitem.ka_imgBox.selected:after {
+  box-shadow: 0px 0px 0px 3px #14baec;
+}
+.KAEditor-editor .ka_subitem.failed {
+  --editor-select-shadow: #ff3333;
+}
+.KAEditor-editor .ka_subitem.ka_vidBox:not(.uploading):after {
+  display: none;
+}
+/* .KAEditor-editor .ka_subitem.ka_vidBox.selected:after { //add the overlay only during selection
+	display: block;
+} */
+.ka_stream a:not(.linkActive),
+.ka_stream a:not(.linkActive):link,
+.ka_stream a:not(.linkActive):active,
+.ka_stream a:not(.linkActive):visited,
+.ka_stream a:not(.linkActive):hover {
+  color: inherit;
+}
+.ka_streamItemContent u a,
+.ka_streamItemContent ins a,
+.ka_streamItemContent span a {
+  display: inline-block;
+}
+.ka_streamItemContent a u,
+.ka_streamItemContent a ins,
+.ka_streamItemContent a span {
+  text-decoration: none !important;
+  text-decoration-line: none !important;
+}
+.ka_stream a.ka_streamItemTitle:link,
+.ka_stream a.ka_streamItemTitle:hover,
+.ka_stream a.ka_streamItemTitle:active,
+.ka_stream a.ka_streamItemTitle:visited,
+.ka_stream a.ka_streamItemTitle:visited:hover {
+  color: #232323;
+}
+.ka_streamItemContent a,
+.ka_streamCommentContent a,
+div#shareBox a {
+  font-weight: inherit;
+}
+.ka_streamItemContent a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive),
+.ka_streamCommentContent a:not(.ka_subitem):not(.linkActive),
+.ka_shareBody a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive),
+.ka_streamNewComment a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive) {
+  text-decoration: none !important;
+  border-bottom: 1px solid #bdbdbd;
+}
+.ka_shareBody a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive) span,
+.ka_streamNewComment a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive) span {
+  text-decoration: none !important;
+}
+.ka_streamItemContent a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive):hover,
+.ka_streamCommentContent a:not(.ka_subitem):not(.linkActive):hover,
+.ka_shareBody a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive):hover,
+.ka_streamNewComment a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive):hover,
+.ka_linkPeeker a:hover {
+  text-decoration: none;
+  outline: 0;
+  border-bottom-color: #555555;
+}
+.ka_streamItemContent h1 a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive),
+.ka_streamCommentContent h1 a:not(.ka_subitem):not(.linkActive),
+.ka_shareBody h1 a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive),
+.ka_streamNewComment h1 a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive),
+.ka_streamItemContent h2 a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive),
+.ka_streamCommentContent h2 a:not(.ka_subitem):not(.linkActive),
+.ka_shareBody h2 a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive),
+.ka_streamNewComment h2 a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive) {
+  border-bottom: 2px solid transparent;
+}
+.ka_streamItemContent h3 a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive),
+.ka_streamCommentContent h3 a:not(.ka_subitem):not(.linkActive),
+.ka_shareBody h3 a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive),
+.ka_streamNewComment h3 a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive),
+.ka_streamItemContent h4 a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive),
+.ka_streamCommentContent h4 a:not(.ka_subitem):not(.linkActive),
+.ka_shareBody h4 a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive),
+.ka_streamNewComment h4 a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive) {
+  border-bottom-color: transparent;
+}
+.ka_streamItemContent h1 a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive):hover,
+.ka_streamCommentContent h1 a:not(.ka_subitem):not(.linkActive):hover,
+.ka_shareBody h1 a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive):hover,
+.ka_streamNewComment h1 a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive):hover,
+.ka_streamItemContent h2 a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive):hover,
+.ka_streamCommentContent h2 a:not(.ka_subitem):not(.linkActive):hover,
+.ka_shareBody h2 a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive):hover,
+.ka_streamNewComment h2 a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive):hover,
+.ka_streamItemContent h3 a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive):hover,
+.ka_streamCommentContent h3 a:not(.ka_subitem):not(.linkActive):hover,
+.ka_shareBody h3 a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive):hover,
+.ka_streamNewComment h3 a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive):hover,
+.ka_streamItemContent h4 a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive):hover,
+.ka_streamCommentContent h4 a:not(.ka_subitem):not(.linkActive):hover,
+.ka_shareBody h4 a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive):hover,
+.ka_streamNewComment h4 a:not(.ka_subitem):not(.ka_streamSubItemTitle):not(.SubItemSubtitle):not(.linkActive):hover {
+  border-bottom-color: inherit;
+}
+.ka_docBox {
+  display: block;
+  border: 1px solid transparent;
+  padding: 5px;
+  white-space: nowrap;
+  height: 40px;
+}
+.ka_docBox:hover {
+  border: 1px solid #d6d6d6;
+}
+.ka_docBox > img {
+  vertical-align: middle;
+  float: left;
+}
+.ka_docBox .ka_streamSubItemTitle {
+  margin-top: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-left: 5px;
+}
+.ka_docBox .ka_docSize {
+  float: right;
+  padding-left: 10px;
+  margin-top: 12px;
+  font-size: 12px;
+  color: #aaaaaa;
+}
+.ka_docBox .ka_docProg {
+  overflow: hidden;
+  height: 3px;
+  left: 5px;
+  margin-right: 5px;
+  margin-top: 2px;
+  position: relative;
+}
+.ka_docBox .ka_docProg > div {
+  background-color: #14baec;
+  height: 100%;
+  transition: width 1s;
+}
+.ka_docBox > span {
+  overflow: hidden;
+  position: absolute;
+  display: inline-block;
+  max-height: 43px;
+  color: #232323;
+  font-size: 12px;
+  font-weight: 500;
+}
+.ka_docBox:hover > span {
+  text-decoration: underline;
+}
+.ka_calendarBox {
+  display: flex;
+}
+.ka_streamItemContent,
+.ka_shareBody .public-DraftStyleDefault-block {
+  line-height: 1.5em;
+}
+.ka_linkPeeker {
+  visibility: hidden;
+  display: none;
+  position: fixed;
+  white-space: nowrap;
+  border: 1px solid #d6d6d6;
+  padding: 10px;
+  transform: translateX(-50%);
+  background-color: #fff;
+  z-index: 1;
+}
+.ka_linkPeeker.active {
+  visibility: visible;
+  display: block;
+  transition: top 75ms ease-out, left 75ms ease-out;
+  animation: pop-downwards 180ms forwards linear;
+}
+.ka_linkPeeker .KAEditor-tri {
+  left: 50%;
+  transform: translateX(-50%);
+}
+.ka_linkPeeker span {
+  color: #aaaaaa;
+}
+.ka_linkPeeker span.button {
+  cursor: pointer;
+}
+.ka_linkPeeker span.button:hover {
+  border-bottom: 1px solid #aaaaaa;
+}
+.ka_commentFooter {
+  margin-left: 55px;
+  display: flex;
+}
+.ka_shareFooter {
+  display: flex;
+  text-align: right;
+}
+.ka_shareFooter > .KAEditor-controls {
+  flex-grow: 1;
+  display: flex;
+  justify-content: space-between;
+}
+.KAEditor-menuOption > span.ka_blogIcon {
+  width: 25px;
+  margin-right: 15px;
+  text-align: center;
+  font-size: 16pt;
+  font-family: helvetica;
+  font-weight: bold;
+  color: #6d6f72;
+}
+.ka_streamSubItemTitle,
+a.ka_streamSubItemTitle,
+a.ka_streamSubItemTitle:link,
+a.ka_streamSubItemTitle:active,
+a.ka_streamSubItemTitle:visited,
+a.ka_streamSubItemTitle:hover {
+  color: #232323;
+  word-break: break-word;
+}
+div.ka_editCommentOptions {
+  position: relative;
+  cursor: pointer;
+  text-align: left;
+}
+div.ka_editCommentOptions > div {
+  position: absolute;
+  top: 37px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 1px solid #d6d6d6;
+  z-index: 2;
+  background-color: #ffffff;
+}
+div.ka_editCommentOptions > div > span {
+  display: block;
+  padding: 5px 10px;
+  white-space: nowrap;
+}
+div.ka_editCommentOptions > div > span:hover {
+  background-color: #f2f2f2;
+}
+.ka_shareTools {
+  vertical-align: middle;
+}
+div.ka_shareToolActions {
+  position: absolute;
+  z-index: 1;
+  padding: 5px;
+  background-color: white;
+  border: 1px solid black;
+  box-shadow: 5px 7px 7px #999;
+}
+div.ka_shareAction {
+  width: 185px;
+  padding: 5px;
+  cursor: pointer;
+}
+div.ka_shareActionTriangleFill {
+  width: 0px;
+  height: 0px;
+  border-style: solid;
+  border-width: 0 25px 15px 25px;
+  border-color: transparent transparent #ffffff transparent;
+  position: absolute;
+  top: -14px;
+  left: 25px;
+  z-index: 3;
+}
+div.ka_shareActionTriangleBorder {
+  width: 0px;
+  height: 0px;
+  border-style: solid;
+  border-width: 0 25px 15px 25px;
+  border-color: transparent transparent #000000 transparent;
+  position: absolute;
+  top: -15px;
+  left: 25px;
+  z-index: 2;
+}
+div.ka_shareAction:hover {
+  background-color: #F3F3F3;
+}
+div.ka_shareAction > img,
+div.ka_shareAction > span {
+  display: inline-block;
+}
+div.ka_shareAction > img {
+  vertical-align: middle;
+  margin-right: 10px;
+}
+div.ka_shareAction > span {
+  vertical-align: middle;
+  width: 150px;
+  text-align: left;
+}
+div.ka_shareAction > span.ka_blogIcon {
+  width: 25px;
+  margin-right: 10px;
+  text-align: center;
+  font-size: 16pt;
+  font-family: helvetica;
+  font-weight: bold;
+  color: #6d6f72;
+}
+.ka_stream strong {
+  font-weight: bold;
+}
+.ka_brokenPost {
+  margin: 14px 0;
+}
+.ka_brokenPost > .divSubjectImage {
+  float: left;
+}
+.ka_brokenPost > .divSubjectImage > img {
+  width: 32px;
+  height: 32px;
+  margin: 5px 9px;
+}
+.ka_brokenPost > .divStreamBody {
+  margin-left: 77px;
+}
+.ka_brokenPost .ka_streamItemTitle {
+  cursor: auto;
+}
+.public-DraftStyleDefault-ol,
+.public-DraftStyleDefault-ul {
+  margin: 0;
+  padding: 1em 0 1em 40px;
+}
+.public-DraftStyleDefault-depth0.public-DraftStyleDefault-listLTR {
+  margin-left: 0;
+}
+.public-DraftStyleDefault-depth2.public-DraftStyleDefault-listLTR {
+  margin-left: 6.5em;
+}
+.public-DraftStyleDefault-depth3.public-DraftStyleDefault-listLTR {
+  margin-left: 9.75em;
+}
+.public-DraftStyleDefault-depth4.public-DraftStyleDefault-listLTR {
+  margin-left: 13.0em;
+}
+.ka_block {
+  border-top: 0;
+  margin-top: 0;
+  padding-top: 0;
+  transition: all 150ms ease;
+  transition-property: padding-top;
+}
+.KAEditor-root:not(.readonly) .ka_block.over {
+  padding-top: 5px;
+}
+.ka_block:before {
+  content: '';
+  line-height: 0;
+  height: 0;
+  display: block;
+  transition: all 150ms ease;
+  transition-property: padding-top, border-top;
+  padding-top: 0;
+  border-top: 0;
+}
+.KAEditor-root:not(.readonly) .ka_block.over:before {
+  padding-top: 5px;
+  border-top: 3px solid #14baec;
+}
+.KAEditor-root > div.richText div[data-block="true"]:last-of-type > div {
+  padding-bottom: 5px;
+}
+.KAEditor-root > div.richText.dragOverEmpty div[data-block="true"]:last-of-type {
+  box-shadow: 0px 3px 0px 0px #14baec;
+}
+.KAEditor-root > div.richText .public-DraftEditor-content {
+  transition: padding-bottom 100ms;
+  box-sizing: border-box;
+}
+.KAEditor-root > div.richText.dragOver .public-DraftEditor-content {
+  padding-bottom: 26px;
+}
+li .ka_block.over {
+  padding-top: 0;
+}
+li .ka_block.over:before {
+  padding-top: 0;
+  border-top: 0;
+}
+.ka_draggable.dragging {
+  height: 0;
+  overflow: hidden;
+}
+/* .ka_subitem.dragging .ka_streamImg { //resize image while dragging
+	max-width: 225px;
+	max-height: 150px;
+}
+.ka_subitem.dragging {//must leave subitem container large enough to stay under the cursor through dragStart event
+	width: 500px;
+	height: 800px;
+} */
+.ka_oEmbedBox {
+  background-color: black;
+}
+.video_wrapper iframe {
+  vertical-align: top;
+}
+.ka-fileAlert {
+  overflow-y: auto;
+}
+.ka-fileAlert .kamodal-title {
+  margin-left: 0;
+}
+.ka-fileAlert .kamodal-content > div:first-of-type .kamodal-title {
+  margin-top: 0;
+}
+.ka-fileAlert .kamodal-message {
+  display: inline-block;
+  margin-top: 25px;
+}
+.ka-fileAlert .kamodal-content input[type='button'] {
+  margin-top: 20px;
+}
+/* .ka_imgOutterBox,
+.ka_oEmbedOutterBox {
+  padding:10px 0;
+} */
+/* .ka_streamCommentContent > div:last-of-type .ka_imgOutterBox,
+.ka_streamCommentContent > div:last-of-type .ka_oEmbedOutterBox,
+.ka_streamComment .ka_SubItemContainer > div:last-of-type.ka_imgOutterBox,
+.ka_streamComment .ka_SubItemContainer > div:last-of-type.ka_oEmbedOutterBox {
+	padding-bottom: 0;
+} */
+.ka_streamItemContent .ka_subitem,
+.ka_streamCommentContent .ka_subitem,
+.public-DraftEditor-content .ka_subitem {
+  margin: 10px 0;
+}
+.ka_streamItemContent > div:first-of-type .ka_subitem,
+.ka_streamCommentContent > div:first-of-type .ka_subitem {
+  margin-top: 0;
+}
+.ka_streamItemContent > div:last-of-type .ka_subitem,
+.ka_streamCommentContent > div:last-of-type .ka_subitem {
+  margin-bottom: 0;
+}
+.ka_streamItemContent,
+.ka_streamCommentContent {
+  margin-bottom: -1px;
+}
+.ka_streamItemTitle + .ka_streamItemContent {
+  margin-top: -5px;
+}
+.ka_SubItemContainer + .ka_streamItemContent {
+  margin-top: 5px;
+}
+.ka_streamItemContent + .ka_SubItemContainer,
+.ka_streamCommentContent + .ka_SubItemContainer {
+  margin-top: 10px;
+}
+.ka_streamComment .ka_streamDate + .ka_SubItemContainer,
+.ka_streamComment .ka_editCommentOptions + .ka_SubItemContainer {
+  margin-top: 20px;
+}
+.ka_SubItemContainer > div:not(:first-of-type) {
+  margin-top: 10px;
+}
+.ka_streamItemContent > .leadingSubItem {
+  margin-top: 5px;
+}
+.ka_streamCommentContent > .leadingSubItem {
+  margin-top: 10px;
+}
+.ka_streamItemContent > .leadingText h1,
+.ka_streamItemContent > .leadingText h2 {
+  margin-top: 2px;
+}
+.ka_streamCommentContent.leadingText h1,
+.ka_streamCommentContent.leadingText h2 {
+  margin-top: 7px;
+}
+.ka_streamCommentContent h1 {
+  padding-bottom: 2px;
+}
+.ka_streamCommentContent h2 {
+  padding-bottom: 1px;
+}
+.ka_streamWebpageImg.embedLogo {
+  padding: 10px;
+  height: 100%;
+  display: table-cell;
+  vertical-align: middle;
+}
+.ka_comment_more {
+  display: block;
+  padding-top: 6px;
+  margin-bottom: -3px;
+  text-align: right;
+}
+div.ka_streamItemFooter {
+  margin: 20px 0;
+}
+.ka_streamItemTitle + .ka_streamLessFooter {
+  margin-top: 0;
+}
+div.ka_streamLessFooter {
+  height: auto;
+}
+span.ka_draftStatusMsg {
+  line-height: 25px;
+  padding-right: 10px;
+  padding-left: 10px;
+  width: 58px;
+  display: flex;
+  justify-content: flex-end;
+  /* position: absolute;
+    bottom: 10px;
+    right: 20px;
+    background-color: white;
+    z-index: 1;
+	padding: 5px 0 0 5px;
+	color: @ka_grey_light_text; */
+}
+.ka_streamActions {
+  border-style: solid;
+  border-color: transparent;
+  border-width: 1px 1px 0px;
+  position: relative;
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-block;
+  min-width: 123px;
+}
+.ka_streamActions.wide {
+  min-width: 140px;
+}
+.ka_streamActions.open {
+  background-color: white;
+  border-color: #d6d6d6;
+}
+.ka_streamActions > div {
+  z-index: 2;
+  background-color: white;
+  border: 1px solid #d6d6d6;
+  border-width: 0 1px 1px;
+  position: absolute;
+  left: -1px;
+  min-width: 123px;
+}
+.ka_streamActions.wide > div {
+  min-width: 140px;
+}
+.ka_streamActions > span {
+  padding: 0 8px;
+}
+.ka_streamActions > div > div > span,
+.ka_streamActions > div > div > a {
+  display: block;
+  padding: 4px 8px;
+  text-decoration: none;
+}
+.ka_streamActions > div > div:hover {
+  background-color: #f2f2f2;
+}
+.KAEditor-editor .ka_subitem.ka_vidBox.uploading {
+  width: 100%;
+  background-color: black;
+}
+.KAEditor-editor .ka_subitem video.uploadingStreamVid {
+  width: 100%;
+  display: block;
+}
+.ka_streamNewComment .KAEditor-editor .ka_subitem video.uploadingStreamVid {
+  max-height: 365.25px;
+}
+.ka_shareSomething .KAEditor-editor .ka_subitem video.uploadingStreamVid {
+  max-height: 402.75px;
+}
+
+.ka_stream,
+.ka_stream td {
+  color: #555555;
+}
+.ka_stream a,
+.ka_stream a:link,
+.ka_stream a:active,
+.ka_stream a:visited,
+.ka_stream a:hover {
+  color: #232323;
+}
+.ka_stream p {
+  margin: 0;
+}
+ul.ka_streamViews {
+  float: left;
+  line-height: 25px;
+}
+ul.ka_streamViews a,
+ul.ka_streamViews a:link,
+ul.ka_streamViews a:hover,
+ul.ka_streamViews a:active,
+ul.ka_streamViews a:visited {
+  color: #aaaaaa;
+}
+a.ka_streamItemTitle:link,
+a.ka_streamItemTitle:hover,
+a.ka_streamItemTitle:active,
+a.ka_streamItemTitle:visited,
+a.ka_streamItemTitle:visited:hover,
+.ka_shareSomething:not(.closed) > #shareTitle {
+  font-size: 20px;
+  font-weight: 500;
+  color: #232323;
+}
+a.ka_streamItemTitle {
+  display: inline-block;
+  margin: 7px 15px 7px 0;
+}
+div.ka_streamLessFooter {
+  margin-top: 10px;
+  height: 16px;
+  position: relative;
+}
+.ka_streamLessFooter img {
+  vertical-align: middle;
+}
+.ka_streamLessFooter a:link,
+.ka_streamLessFooter a:hover,
+.ka_streamLessFooter a:active,
+.ka_streamLessFooter a:visited {
+  text-decoration: none;
+}
+.ka_streamLessFooter > .ka_less_btnLike > img,
+.ka_streamLessFooter > .ka_less_btnComment > img {
+  width: 20px;
+  height: 20px;
+}
+.ka_less_btnComment {
+  position: absolute;
+  left: 100px;
+}
+.ka_paragraph {
+  line-height: 1.5em;
+}
+.ka_streamCommentContent {
+  margin: 7px 0 2px;
+  line-height: 1.5em;
+}
+div.ka_streamLessImg {
+  margin-top: 15px;
+  max-height: 225px;
+  overflow: hidden;
+  position: relative;
+  display: inline-block;
+}
+.ka_streamLessView {
+  cursor: pointer;
+}
+.ka_streamItemContent {
+  position: relative;
+  /*for truncadient*/
+  text-overflow: ellipsis;
+  line-height: 1.5em;
+}
+.ka_streamItemContent.less {
+  max-height: 26px;
+}
+.ka_streamItemContent a,
+.ka_streamCommentContent a,
+div#shareBox a {
+  font-weight: 400;
+}
+.ka_streamSubItemTitle,
+.ka_streamSubItemSubtitle,
+.ka_steamSubItemBody,
+.ka_SubHeaderText,
+#divAttachedWebpage {
+  font-size: 12px;
+}
+.ka_SubHeaderText,
+.ka_streamSubItemTitle {
+  font-weight: 500;
+}
+.ka_SubHeaderText {
+  margin-top: 13px;
+  margin-bottom: 10px;
+}
+.ka_steamSubItemBody {
+  word-wrap: break-word;
+  overflow: hidden;
+  max-width: 541px;
+  margin-top: 4px;
+  line-height: 1.5em;
+}
+.ka_steamSubItemBody.slick-slider .slick-slide img {
+  max-height: 333px;
+  max-width: 500px;
+}
+div.ka_streamMoreLess {
+  float: right;
+  display: inline-block;
+  line-height: 25px;
+  vertical-align: middle;
+  color: #aaaaaa;
+}
+div.ka_streamMoreLess a:link,
+div.ka_streamMoreLess a:visited,
+div.ka_streamMoreLess a:hover,
+div.ka_streamMoreLess a:active {
+  color: #aaaaaa;
+}
+div.ka_streamMoreLess a.active:link,
+div.ka_streamMoreLess a.active:visited,
+div.ka_streamMoreLess a.active:hover,
+div.ka_streamMoreLess a.active:active {
+  color: #14baec;
+}
+a.ka_streamTagLink,
+a.ka_streamTagLink:link,
+a.ka_streamTagLink:active,
+a.ka_streamTagLink:visited,
+a.ka_streamTagLink:hover,
+a.ka_blogcategory_link,
+a.ka_blogcategory_link:link,
+a.ka_blogcategory_link:active,
+a.ka_blogcategory_link:visited,
+a.ka_blogcategory_link:hover {
+  color: inherit;
+}
+.ka_streamTags {
+  margin-top: 5px;
+}
+div.ka_streamTags,
+div.ka_streamBlogCategories {
+  overflow: hidden;
+}
+/*don't wrap less^ button*/
+div.ka_streamTagEditor {
+  display: none;
+}
+div.ka_streamItemFooterdate {
+  font-weight: bold;
+  clear: both;
+  margin-top: 8px;
+  color: #555555;
+}
+div.ka_streamItemFooter {
+  margin: 10px 0;
+}
+div.ka_streamItemFooter,
+div.ka_streamItemFooter a,
+div.ka_streamItemFooter a:link,
+div.ka_streamItemFooter a:hover,
+div.ka_streamItemFooter a:active,
+div.ka_streamItemFooter a:visited,
+div.ka_streamLessFooter,
+div.ka_streamLessFooter a,
+div.ka_streamLessFooter a:link,
+div.ka_streamLessFooter a:hover,
+div.ka_streamLessFooter a:active,
+div.ka_streamLessFooter a:visited {
+  color: #aaaaaa;
+}
+div.ka_streamItemMore a,
+a.ka_streamItemMore:link,
+a.ka_streamItemMore:hover,
+a.ka_streamItemMore:active,
+a.ka_streamItemMore:visited,
+div.ka_streamItemLess a,
+a.ka_streamItemLess:link,
+a.ka_streamItemLess:hover,
+a.ka_streamItemLess:active,
+a.ka_streamItemLess:visited {
+  text-decoration: none;
+  color: #14baec !important;
+  float: right;
+  margin: 5px 0 0 30px;
+}
+input.ka_applyStreamTags {
+  display: none;
+  margin: 2px 0px 0px 5px;
+}
+a.ka_EditTags {
+  margin: 5px;
+  float: right;
+  width: 52px;
+  text-align: center;
+}
+div.ka_newCommentBox {
+  display: table-cell;
+  width: 443px;
+  max-width: 443px;
+  /*keeps div from expanding past 444 even with width set*/
+  min-height: 23px;
+  margin: 0;
+  border: 1px solid #d6d6d6;
+  background-color: #FFF;
+  padding: 5px 15px 5px 5px;
+  outline: none;
+}
+a.ka_streamTagIcon img {
+  max-height: 25px;
+  padding: 0px 5px 0px 0px;
+  vertical-align: middle;
+}
+div.ka_streamCommentActions {
+  float: right;
+  width: 10px;
+  height: 10px;
+}
+div.ka_commentActions {
+  display: none;
+  text-align: right;
+  margin-left: 40px;
+}
+span.ka_streamDate {
+  float: right;
+}
+.ka_removeComment {
+  display: none;
+  float: right;
+}
+a.ka_authorName,
+a.ka_authorName:link,
+a.ka_authorName:hover,
+a.ka_authorName:active,
+a.ka_authorName:visited,
+a.ka_authorName:visited:hover,
+span.ka_authorName {
+  color: inherit;
+}
+div.ka_streamComment a.ka_authorName:link,
+div.ka_streamComment a.ka_authorName:hover,
+div.ka_streamComment a.ka_authorName:active,
+div.ka_streamComment a.ka_authorName:visited {
+  color: #232323;
+}
+a.ka_likeAuthor,
+span.ka_likeAuthor {
+  vertical-align: middle;
+}
+div.ka_streamSubItem {
+  margin-top: 10px;
+  margin-right: 15px;
+  position: relative;
+  overflow: hidden;
+  /*allows div to wrap floating children*/
+}
+img.ka_commentIcon {
+  vertical-align: middle;
+  margin-right: 4px;
+  width: 20px;
+  height: 20px;
+}
+a.ka_commentIcon:hover img.ka_commentIcon {
+  /*background-position:-16px -16px;*/
+}
+img.ka_likeIcon {
+  vertical-align: middle;
+  margin-right: 4px;
+  max-width: 20px;
+  max-height: 20px;
+}
+.red {
+  color: #ff3333;
+}
+a.ka_shrinkExpandTri {
+  padding: 4px;
+  position: absolute;
+  top: -20px;
+  right: 0;
+}
+/*
+.calDay
+{
+    text-align: center;
+    position: absolute;
+    width: 80px;
+    margin-top: 34px;
+    font-size: 19pt;
+    color: Black;
+}
+.calMonth
+{
+    text-align: center;
+    position: absolute;
+    width: 80px;
+    margin-top: 27px;
+    font-size: 6pt;
+    color: Black;
+}
+*/
+.ka_CalIcon {
+  width: 148px;
+  height: 78px;
+  border: 1px solid #d6d6d6;
+  vertical-align: middle;
+  text-align: center;
+  font-weight: 500;
+  float: left;
+  margin-right: 10px;
+}
+.ka_CalIcon > a:hover {
+  text-decoration: none;
+}
+.ka_CalMonth {
+  font-size: 18px;
+  margin-top: 8px;
+  margin-bottom: -5px;
+}
+.ka_CalDay {
+  font-size: 36px;
+}
+.ka_EventLocation {
+  display: block;
+  overflow-wrap: break-word;
+}
+.SubItemTitle {
+  color: #232323 !important;
+}
+.SubItemSubtitle {
+  display: block;
+  word-wrap: break-word;
+  margin-bottom: 10px;
+}
+
+
+/*# sourceMappingURL=stream.kaModules.css.map*/
